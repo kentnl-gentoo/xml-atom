@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.7 2003/12/30 06:59:05 btrott Exp $
+# $Id: Makefile.PL,v 1.8 2004/06/01 16:56:28 btrott Exp $
 
 use inc::Module::Install;
 
@@ -20,6 +20,7 @@ features(
     'Client/Server for Atom API' => [
         -default => 1,
         recommends('LWP'),
+        recommends('LWP::Authen::Wsse'),
         recommends('Digest::SHA1'),
         recommends('DateTime'),
     ],

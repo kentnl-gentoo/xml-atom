@@ -1,6 +1,16 @@
-$Id: Changes,v 1.20 2004/05/15 12:11:40 btrott Exp $
+$Id: Changes,v 1.23 2004/06/01 16:56:27 btrott Exp $
 
 Revision history for XML::Atom
+
+0.08  2004.06.01
+    - Added XML::Atom::Feed::language method, which returns the language
+      of the feed (from 'xml:lang').
+    - Added XML::Atom::Feed::author, which returns a XML::Atom::Person
+      object representing the <author> element.
+    - Remove the default: namespace prefix that XML::LibXML adds inside
+      <content mode="xml"> elements.
+    - Use LWP::Authen::Wsse module for WSSE authentication when in REST
+      mode, which handles redirects properly.
 
 0.07  2004.05.15
     - Added (experimental) support for using XML::XPath as an alternative

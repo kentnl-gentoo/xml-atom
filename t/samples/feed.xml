@@ -31,10 +31,7 @@
     <summary>Well, it&apos;s about testing, really.</summary>
     <created>2003-08-25T11:39:42Z</created>
     <dc:subject></dc:subject>
-    <content type="text/html" mode="escaped" xml:lang="en">
-      Python is cool stuff for ReSTy webapps.
-      
-    </content>
+    <content type="text/html" mode="xml" xml:lang="en"><div xmlns="http://www.w3.org/1999/xhtml"><p>Python is cool stuff for ReSTy webapps.</p></div></content>
   </entry>
   <entry>
     <!-- required entry elements -->

@@ -1,4 +1,4 @@
-# $Id: Feed.pm,v 1.6 2004/05/08 13:20:58 btrott Exp $
+# $Id: Feed.pm,v 1.7 2004/05/30 08:12:06 btrott Exp $
 
 package XML::Atom::Feed;
 use strict;
@@ -69,6 +69,12 @@ sub find_feeds {
 }
 
 sub element_name { 'feed' }
+
+sub language {
+    my $feed = shift;
+    LIBXML ? $feed->{doc}->getDocumentElement->getAttribute('lang') :
+             $feed->{doc}->getAttribute('xml:lang');
+}
 
 sub entries_libxml {
     my $feed = shift;
@@ -204,6 +210,23 @@ the feed as a new I<E<lt>linkE<gt>> tag. For example:
     $link->rel('alternate');
     $link->href('http://www.example.com/');
     $feed->add_link($link);
+
+=head2 $feed->language
+
+Returns the language of the feed, from I<xml:lang>.
+
+=head2 $feed->author([ $author ])
+
+Returns an I<XML::Atom::Person> object representing the author of the entry,
+or C<undef> if there is no author information present.
+
+If I<$author> is supplied, it should be an I<XML::Atom::Person> object
+representing the author. For example:
+
+    my $author = XML::Atom::Person->new;
+    $author->name('Foo Bar');
+    $author->email('foo@bar.com');
+    $feed->author($author);
 
 =head1 AUTHOR & COPYRIGHT
 

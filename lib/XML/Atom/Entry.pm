@@ -1,4 +1,4 @@
-# $Id: Entry.pm,v 1.13 2004/05/09 10:44:55 btrott Exp $
+# $Id: Entry.pm,v 1.14 2004/05/30 08:12:06 btrott Exp $
 
 package XML::Atom::Entry;
 use strict;
@@ -13,51 +13,6 @@ use XML::Atom::Util qw( first );
 use constant NS => 'http://purl.org/atom/ns#';
 
 sub element_name { 'entry' }
-
-sub _element {
-    my $entry = shift;
-    my($class, $name) = (shift, shift);
-    my $root = LIBXML ? $entry->{doc}->getDocumentElement : $entry->{doc};
-    if (@_) {
-        my $obj = shift;
-        if (my $node = first($entry->{doc}, NS, $name)) {
-            $root->removeChild($node);
-        }
-        my $elem = LIBXML ?
-            $entry->{doc}->createElementNS(NS, $name) :
-            XML::XPath::Node::Element->new($name);
-        $root->appendChild($elem);
-        if (LIBXML) {
-            for my $child ($obj->elem->childNodes) {
-                $elem->appendChild($child->cloneNode(1));
-            }
-            for my $attr ($obj->elem->attributes) {
-                next unless ref($attr) eq 'XML::LibXML::Attr';
-                $elem->setAttribute($attr->getName, $attr->getValue);
-            }
-        } else {
-            for my $child ($obj->elem->getChildNodes) {
-                $elem->appendChild($child);
-            }
-            for my $attr ($obj->elem->getAttributes) {
-                $elem->appendAttribute($attr);
-            }
-        }
-        $obj->{elem} = $elem;
-        $entry->{'__' . $name} = $obj;
-    } else {
-        unless (exists $entry->{'__' . $name}) {
-            my $elem = first($entry->{doc}, NS, $name) or return;
-            $entry->{'__' . $name} = $class->new(Elem => $elem);
-        }
-    }
-    $entry->{'__' . $name};
-}
-
-sub author {
-    my $entry = shift;
-    $entry->_element('XML::Atom::Person', 'author', @_);
-}
 
 sub content {
     my $entry = shift;
@@ -83,7 +38,7 @@ XML::Atom::Entry - Atom entry
     $entry->content('The content of my post.');
     my $xml = $entry->as_xml;
     my $dc = XML::Atom::Namespace->new(dc => 'http://purl.org/dc/elements/1.1/');
-    $entry->set($dc->subject, 'Food & Drink');
+    $entry->set($dc, 'subject', 'Food & Drink');
 
 =head1 USAGE
 

@@ -1,4 +1,4 @@
-# $Id: Thing.pm,v 1.12 2004/05/08 18:33:46 btrott Exp $
+# $Id: Thing.pm,v 1.13 2004/05/30 08:12:06 btrott Exp $
 
 package XML::Atom::Thing;
 use strict;
@@ -218,6 +218,11 @@ sub link_xpath {
     }
 }
 
+sub author {
+    my $thing = shift;
+    $thing->_element('XML::Atom::Person', 'author', @_);
+}
+
 sub as_xml {
     my $doc = $_[0]->{doc};
     if (eval { require XML::LibXSLT }) {
@@ -239,6 +244,46 @@ EOX
     } else {
         return $doc->toString(LIBXML ? 1 : 0);
     }
+}
+
+sub _element {
+    my $thing = shift;
+    my($class, $name) = (shift, shift);
+    my $root = LIBXML ? $thing->{doc}->getDocumentElement : $thing->{doc};
+    if (@_) {
+        my $obj = shift;
+        if (my $node = first($thing->{doc}, NS, $name)) {
+            $root->removeChild($node);
+        }
+        my $elem = LIBXML ?
+            $thing->{doc}->createElementNS(NS, $name) :
+            XML::XPath::Node::Element->new($name);
+        $root->appendChild($elem);
+        if (LIBXML) {
+            for my $child ($obj->elem->childNodes) {
+                $elem->appendChild($child->cloneNode(1));
+            }
+            for my $attr ($obj->elem->attributes) {
+                next unless ref($attr) eq 'XML::LibXML::Attr';
+                $elem->setAttribute($attr->getName, $attr->getValue);
+            }
+        } else {
+            for my $child ($obj->elem->getChildNodes) {
+                $elem->appendChild($child);
+            }
+            for my $attr ($obj->elem->getAttributes) {
+                $elem->appendAttribute($attr);
+            }
+        }
+        $obj->{elem} = $elem;
+        $thing->{'__' . $name} = $obj;
+    } else {
+        unless (exists $thing->{'__' . $name}) {
+            my $elem = first($thing->{doc}, NS, $name) or return;
+            $thing->{'__' . $name} = $class->new(Elem => $elem);
+        }
+    }
+    $thing->{'__' . $name};
 }
 
 sub DESTROY { }

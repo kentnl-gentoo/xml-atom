@@ -1,4 +1,4 @@
-# $Id: Content.pm,v 1.5 2004/05/08 18:33:46 btrott Exp $
+# $Id: Content.pm,v 1.6 2004/05/31 17:20:07 btrott Exp $
 
 package XML::Atom::Content;
 use strict;
@@ -111,7 +111,11 @@ sub body {
                             LIBXML ? $children[0]->childNodes :
                                      $children[0]->getChildNodes
                     }
-                    $content->{__body} = join '', map $_->toString(LIBXML ? 1 : 0), @children;
+                    $content->{__body} = '';
+                    for my $n (@children) {
+                        _remove_default_ns($n) if LIBXML;
+                        $content->{__body} .= $n->toString(LIBXML ? 1 : 0);
+                    }
                 } else {
                     $content->{__body} = LIBXML ? $elem->textContent : $elem->string_value;
                 }
@@ -129,6 +133,15 @@ sub body {
         }
     }
     $content->{__body};
+}
+
+sub _remove_default_ns {
+    my($node) = @_;
+    $node->setNamespace('http://www.w3.org/1999/xhtml', '')
+        if ref($node) =~ /Element$/;
+    for my $n ($node->childNodes) {
+        _remove_default_ns($n);
+    }
 }
 
 sub as_xml {

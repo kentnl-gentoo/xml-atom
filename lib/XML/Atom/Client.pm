@@ -1,4 +1,4 @@
-# $Id: Client.pm,v 1.20 2004/05/08 15:26:34 btrott Exp $
+# $Id: Client.pm,v 1.21 2004/06/01 16:56:28 btrott Exp $
 
 package XML::Atom::Client;
 use strict;
@@ -228,50 +228,6 @@ sub get_basic_credentials {
 sub DESTROY {
     my $self = shift;
     delete $ClientOf{$self};
-}
-
-package LWP::Authen::Wsse;
-use strict;
-
-use MIME::Base64;
-use Digest::SHA1;
-use DateTime;
-
-sub authenticate {
-    my($class, $ua, $proxy, $auth_param, $res, $req, $arg, $size) = @_;
-    my($user, $pass) = $ua->get_basic_credentials($auth_param->{realm},
-        $req->url, $proxy);
-    return $res unless defined $user && defined $pass;
-
-    my $nonce = XML::Atom::Client->make_nonce;
-    my $nonce_enc = MIME::Base64::encode_base64($nonce, '');
-    my $now = DateTime->now->iso8601 . 'Z';
-    my $digest = MIME::Base64::encode_base64(
-        Digest::SHA1::sha1($nonce . $now . ($pass || '')), ''
-    );
-
-    my $auth_header = $proxy ? "Proxy-Authorization" : "Authorization";
-    my $wsse_value = sprintf
-        qq(UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
-        $user || '', $digest, $nonce_enc, $now;
-
-    # Need to check this isn't a repeated fail!
-    my $r = $res;
-    while ($r) {
-        my $wsse = $r->request->header('X-WSSE');
-        if ($wsse && $wsse eq $wsse_value) {
-            # here we know this failed before
-            $res->header("Client-Warning" =>
-                "Credentials for '$user' failed before");
-            return $res;
-        }
-        $r = $r->previous;
-    }
-
-    my $referral = $req->clone;
-    $referral->header($auth_header, 'WSSE profile="UsernameToken"');
-    $referral->header('X-WSSE' => $wsse_value);
-    return $ua->request($referral, $arg, $size, $res);
 }
 
 1;
