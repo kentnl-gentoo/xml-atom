@@ -1,4 +1,4 @@
-# $Id: Atom.pm,v 1.11 2004/01/05 16:17:41 btrott Exp $
+# $Id: Atom.pm,v 1.12 2004/04/24 10:09:12 btrott Exp $
 
 package XML::Atom;
 use strict;
@@ -6,7 +6,7 @@ use strict;
 use base qw( XML::Atom::ErrorHandler );
 
 use vars qw( $VERSION );
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 package XML::Atom::Namespace;
 use strict;

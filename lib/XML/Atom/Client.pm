@@ -1,4 +1,4 @@
-# $Id: Client.pm,v 1.17 2003/12/24 08:59:16 btrott Exp $
+# $Id: Client.pm,v 1.18 2004/04/24 10:09:12 btrott Exp $
 
 package XML::Atom::Client;
 use strict;
@@ -10,7 +10,7 @@ use XML::Atom::Entry;
 use XML::Atom::Feed;
 use XML::Atom::Util qw( first textValue );
 use XML::LibXML;
-use Digest::SHA1 qw( sha1 sha1_hex );
+use Digest::SHA1 qw( sha1 );
 use MIME::Base64 qw( encode_base64 );
 use DateTime;
 
@@ -79,7 +79,7 @@ sub createEntry {
     my $res = $client->make_request($req);
     return $client->error("Error on POST $uri: " . $res->status_line)
         unless $res->code == 201;
-    $res->header('Location');
+    $res->header('Location') || 1;
 }
 
 sub updateEntry {
@@ -133,6 +133,7 @@ sub munge_request {
     my $client = shift;
     my($req) = @_;
     my $nonce = $client->make_nonce;
+    my $nonce_enc = encode_base64($nonce, '');
     my $now = DateTime->now->iso8601 . 'Z';
     my $digest = encode_base64(sha1($nonce . $now . ($client->password || '')), '');
     if ($client->use_soap) {
@@ -149,7 +150,7 @@ sub munge_request {
       <wsse:UsernameToken>
         <wsse:Username>@{[ $client->username || '' ]}</wsse:Username>
         <wsse:Password Type="wsse:PasswordDigest">$digest</wsse:Password>
-        <wsse:Nonce>$nonce</wsse:Nonce>
+        <wsse:Nonce>$nonce_enc</wsse:Nonce>
         <wsu:Created>$now</wsu:Created>
       </wsse:UsernameToken>
     </wsse:Security>
@@ -169,7 +170,7 @@ SOAP
     } else {
         $req->header('X-WSSE', sprintf
           qq(UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
-          $client->username || '', $digest, $nonce, $now);
+          $client->username || '', $digest, $nonce_enc, $now);
         $req->header('Authorization', 'WSSE profile="UsernameToken"');
     }
 }
@@ -196,7 +197,7 @@ sub munge_response {
 
 sub make_nonce {
     my $app = shift;
-    sha1_hex(sha1_hex(time() . {} . rand() . $$));
+    sha1(sha1(time() . {} . rand() . $$));
 }
 
 1;

@@ -1,6 +1,6 @@
 #line 1 "inc/Module/Install/AutoInstall.pm - /Library/Perl/5.8.1/Module/Install/AutoInstall.pm"
 # $File: //depot/cpan/Module-Install/lib/Module/Install/AutoInstall.pm $ $Author: autrijus $
-# $Revision: #12 $ $Change: 1481 $ $DateTime: 2003/05/07 10:41:22 $ vim: expandtab shiftwidth=4
+# $Revision: #13 $ $Change: 1846 $ $DateTime: 2003/12/31 22:57:12 $ vim: expandtab shiftwidth=4
 
 package Module::Install::AutoInstall;
 use Module::Install::Base; @ISA = qw(Module::Install::Base);
@@ -38,6 +38,10 @@ manually install $p $v from cpan.org first...\n"}}}
     # Flatten array of arrays into a single array
     my @core = map @$_, map @$_, grep ref,
                $self->build_requires, $self->requires;
+
+    while ( @core and @_ > 1 and $_[0] =~ /^-\w+$/ ) {
+        push @core, splice(@_, 0, 2);
+    }
 
     ExtUtils::AutoInstall->import(
         (@core ? (-core => \@core) : ()), @_, $self->features

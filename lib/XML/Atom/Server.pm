@@ -1,10 +1,10 @@
-# $Id: Server.pm,v 1.2 2003/12/28 05:37:48 btrott Exp $
+# $Id: Server.pm,v 1.3 2004/04/24 10:09:12 btrott Exp $
 
 package XML::Atom::Server;
 use strict;
 
 use base qw( XML::Atom::ErrorHandler );
-use MIME::Base64 qw( encode_base64 );
+use MIME::Base64 qw( encode_base64 decode_base64 );
 use Digest::SHA1 qw( sha1 );
 use XML::Atom::Util qw( first encode_xml );
 use XML::Atom::Entry;
@@ -265,7 +265,7 @@ sub authenticate {
     my $password = $server->password_for_user($auth->{Username})
         or return $server->auth_failure(403, 'Invalid login');
     my $expected = encode_base64(sha1(
-           $auth->{Nonce} . $auth->{Created} . $password
+           decode_base64($auth->{Nonce}) . $auth->{Created} . $password
     ), '');
     return $server->auth_failure(403, 'X-WSSE PasswordDigest is incorrect')
         unless $expected eq $auth->{PasswordDigest};

@@ -1,4 +1,4 @@
-# $Id: Thing.pm,v 1.9 2003/12/30 06:58:18 btrott Exp $
+# $Id: Thing.pm,v 1.10 2004/04/24 10:09:12 btrott Exp $
 
 package XML::Atom::Thing;
 use strict;
@@ -91,15 +91,21 @@ sub add_link {
     my($link) = @_;
     my $elem = $thing->{doc}->createElementNS(NS, 'link');
     $thing->{doc}->getDocumentElement->appendChild($elem);
-    for my $k (qw( type rel href title )) {
-        $elem->setAttribute($k, $link->$k());
+    if (ref($link) eq 'XML::Atom::Link') {
+        for my $k (qw( type rel href title )) {
+            $elem->setAttribute($k, $link->$k());
+        }
+    } elsif (ref($link) eq 'HASH') {
+        for my $k (qw( type rel href title )) {
+            $elem->setAttribute($k, $link->{$k});
+        }
     }
 }
 
 sub link {
     my $thing = shift;
     if (wantarray) {
-        my @res = $thing->{doc}->getElementsByTagNameNS(NS, 'link');
+        my @res = $thing->{doc}->getDocumentElement->getChildrenByTagNameNS(NS, 'link');
         my @links;
         for my $elem (@res) {
             push @links, XML::Atom::Link->new(Elem => $elem);

@@ -1,6 +1,17 @@
-$Id: Changes,v 1.15 2004/01/05 16:17:41 btrott Exp $
+$Id: Changes,v 1.16 2004/04/24 10:09:12 btrott Exp $
 
 Revision history for XML::Atom
+
+0.06  2004.04.14
+    - BACKWARDS INCOMPATIBILITY:
+      Fixed Nonce behavior in API. Nonce should be sent in base64-encoded
+      form in SOAP and REST requests, but decoded (raw) nonce should be used
+      when generating PasswordDigest.
+    - Feed->add_link and Entry->add_link now support the same hash
+      reference parameter style as used in 0.041 and below, in addition
+      to the XML::Atom::Link parameter.
+    - Fixed bug with Feed->link so that it no longer returns links that
+      are contained within <entry> elements within the <feed>.
 
 0.05  2004.01.05
     - BACKWARDS INCOMPABILITY:

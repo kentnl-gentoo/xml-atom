@@ -1,4 +1,4 @@
-# $Id: 12-feed.t,v 1.5 2004/01/05 16:14:20 btrott Exp $
+# $Id: 12-feed.t,v 1.6 2004/04/24 10:09:12 btrott Exp $
 
 use strict;
 
@@ -6,7 +6,7 @@ use Test;
 use XML::Atom::Feed;
 use URI;
 
-BEGIN { plan tests => 14 };
+BEGIN { plan tests => 20 };
 
 my $feed;
 
@@ -37,3 +37,14 @@ ok(scalar @entries, 16);
 my $last = $entries[-1];
 ok($last->title, 'Foo');
 #ok($last->content->body, '<p>This is a test.</p>');
+
+$feed->add_link({ title => 'Number Three', rel => 'service.post',
+                  href => 'http://www.example.com/atom',
+                  type => 'application/x.atom+xml' });
+my @links = $feed->link;
+ok(scalar @links, 2);
+ok(ref($links[-1]), 'XML::Atom::Link');
+ok($links[-1]->title, 'Number Three');
+ok($links[-1]->rel, 'service.post');
+ok($links[-1]->href, 'http://www.example.com/atom');
+ok($links[-1]->type, 'application/x.atom+xml');

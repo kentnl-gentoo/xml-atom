@@ -1,4 +1,4 @@
-# $Id: Link.pm,v 1.1 2003/12/30 06:58:18 btrott Exp $
+# $Id: Link.pm,v 1.2 2004/04/24 10:09:12 btrott Exp $
 
 package XML::Atom::Link;
 use strict;
@@ -33,7 +33,12 @@ sub elem { $_[0]->{elem} }
 sub get {
     my $link = shift;
     my($attr) = @_;
-    $link->elem->getAttribute($attr);
+    my $val = $link->elem->getAttribute($attr);
+    if ($] >= 5.008) {
+        require Encode;
+        Encode::_utf8_off($val);
+    }
+    $val;
 }
 
 sub set {
