@@ -1,11 +1,11 @@
-# $Id: Thing.pm 912 2004-12-31 22:54:46Z btrott $
+# $Id: Thing.pm 1806 2005-02-23 23:13:21Z btrott $
 
 package XML::Atom::Thing;
 use strict;
 
 use XML::Atom;
 use base qw( XML::Atom::ErrorHandler );
-use XML::Atom::Util qw( first );
+use XML::Atom::Util qw( first nodelist remove_default_ns );
 use XML::Atom::Link;
 use LWP::UserAgent;
 BEGIN {
@@ -109,6 +109,21 @@ sub get {
     $val;
 }
 
+sub getlist {
+    my $atom = shift;
+    my($ns, $name) = @_;
+    my $ns_uri = ref($ns) eq 'XML::Atom::Namespace' ? $ns->{uri} : $ns;
+    my @node = nodelist($atom->{doc}, $ns_uri, $name);
+     map {
+        my $val = LIBXML ? $_->textContent : $_->string_value;
+        if ($] >= 5.008) {
+            require Encode;
+            Encode::_utf8_off($val);
+        }
+        $val;
+     } @node;
+}
+
 sub set_libxml {
     my $atom = shift;
     my($ns, $name, $val, $attr) = @_;
@@ -168,21 +183,24 @@ sub add_link {
     my $thing = shift;
     my($link) = @_;
     my $elem;
-    if (LIBXML) {
-        $elem = $thing->{doc}->createElementNS(NS, 'link');
-        $thing->{doc}->getDocumentElement->appendChild($elem);
-    } else {
-        $elem = XML::XPath::Node::Element->new('link');
-        my $ns = XML::XPath::Node::Namespace->new('#default' => NS);
-        $elem->appendNamespace($ns);
-        $thing->{doc}->appendChild($elem);
-    }
     if (ref($link) eq 'XML::Atom::Link') {
-        for my $k (qw( type rel href title )) {
-            my $v = $link->$k() or next;
-            $elem->setAttribute($k, $v);
-        }
-    } elsif (ref($link) eq 'HASH') {
+	if (LIBXML) {
+	    $thing->{doc}->getDocumentElement->appendChild($link->elem);
+	} else {
+	    $thing->{doc}->appendChild($link->elem);
+	}
+    } else {
+	if (LIBXML) {
+	    $elem = $thing->{doc}->createElementNS(NS, 'link');
+	    $thing->{doc}->getDocumentElement->appendChild($elem);
+	} else {
+	    $elem = XML::XPath::Node::Element->new('link');
+	    my $ns = XML::XPath::Node::Namespace->new('#default' => NS);
+	    $elem->appendNamespace($ns);
+	    $thing->{doc}->appendChild($elem);
+	}
+    }
+    if (ref($link) eq 'HASH') {
         for my $k (qw( type rel href title )) {
             my $v = $link->{$k} or next;
             $elem->setAttribute($k, $v);
@@ -244,6 +262,7 @@ EOX
         my $results = $sheet->transform($doc);
         return $sheet->output_string($results);
     } else {
+        remove_default_ns($doc->getDocumentElement);
         return $doc->toString(LIBXML ? 1 : 0);
     }
 }

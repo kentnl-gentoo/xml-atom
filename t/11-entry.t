@@ -1,4 +1,4 @@
-# $Id: 11-entry.t 893 2004-05-08 13:20:58Z btrott $
+# $Id: 11-entry.t 1806 2005-02-23 23:13:21Z btrott $
 
 use strict;
 
@@ -7,7 +7,7 @@ use XML::Atom;
 use XML::Atom::Entry;
 use XML::Atom::Person;
 
-BEGIN { plan tests => 60 }
+BEGIN { plan tests => 64 }
 
 my $entry;
 
@@ -40,6 +40,10 @@ $entry->author->name('Ben');
 ok($entry->author->url, 'http://mena.typepad.com/');
 my $dc = XML::Atom::Namespace->new(dc => 'http://purl.org/dc/elements/1.1/');
 ok($entry->get($dc->subject), 'Food');
+my @subj = $entry->getlist($dc->subject);
+ok(@subj == 2);
+ok($subj[0], 'Food');
+ok($subj[1], 'Cats');
 ok($entry->content);
 ok($entry->content->body, '<p>No, Ben isn\'t updating. It\'s me testing out guest author functionality.</p>');
 
@@ -124,3 +128,9 @@ $entry = XML::Atom::Entry->new( Stream => \$entry->as_xml );
 ok($entry->content->mode, 'base64');
 ok($entry->content->body, "This is a test that should use base64\0.");
 ok($entry->content->type, 'image/gif');
+
+my $ns = XML::Atom::Namespace->new(list => "http://www.sixapart.com/atom/list#");
+$link->set($ns, type => "Books");
+$entry->add_link($link);
+$xml = $entry->as_xml;
+ok($xml =~ /list:type="Books"/);

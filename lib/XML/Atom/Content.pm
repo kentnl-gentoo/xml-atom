@@ -1,10 +1,11 @@
-# $Id: Content.pm 903 2004-05-31 17:20:07Z btrott $
+# $Id: Content.pm 1805 2005-02-09 06:46:06Z btrott $
 
 package XML::Atom::Content;
 use strict;
 
 use XML::Atom;
 use base qw( XML::Atom::ErrorHandler );
+use XML::Atom::Util qw( remove_default_ns );
 use MIME::Base64 qw( encode_base64 decode_base64 );
 
 use constant NS => 'http://purl.org/atom/ns#';
@@ -64,7 +65,7 @@ sub body {
         } else {
             $elem->removeChild($_) for $elem->getChildNodes;
         }
-        if ($data =~ /[^\x09\x0a\x0d\x20-\x7f]/) {
+        if (!_is_printable($data)) {
             if (LIBXML) {
                $elem->appendChild(XML::LibXML::Text->new(encode_base64($data, '')));
             } else {
@@ -113,7 +114,7 @@ sub body {
                     }
                     $content->{__body} = '';
                     for my $n (@children) {
-                        _remove_default_ns($n) if LIBXML;
+                        remove_default_ns($n) if LIBXML;
                         $content->{__body} .= $n->toString(LIBXML ? 1 : 0);
                     }
                 } else {
@@ -135,13 +136,11 @@ sub body {
     $content->{__body};
 }
 
-sub _remove_default_ns {
-    my($node) = @_;
-    $node->setNamespace('http://www.w3.org/1999/xhtml', '')
-        if ref($node) =~ /Element$/;
-    for my $n ($node->childNodes) {
-        _remove_default_ns($n);
-    }
+sub _is_printable {
+    my $data = shift;
+
+    # printable ASCII or UTF-8 bytes
+    $data =~ /^(?:[\x09\x0a\x0d\x20-\x7f]|[\xc0-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf][\x80-\xbf])*$/;
 }
 
 sub as_xml {
