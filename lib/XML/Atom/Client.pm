@@ -1,4 +1,4 @@
-# $Id: Client.pm,v 1.21 2004/06/01 16:56:28 btrott Exp $
+# $Id: Client.pm,v 1.23 2004/07/29 16:51:25 btrott Exp $
 
 package XML::Atom::Client;
 use strict;
@@ -73,6 +73,7 @@ sub createEntry {
     my $req = HTTP::Request->new(POST => $uri);
     $req->content_type('application/x.atom+xml');
     my $xml = $entry->as_xml;
+    _utf8_off($xml);
     $req->content_length(length $xml);
     $req->content($xml);
     my $res = $client->make_request($req);
@@ -87,6 +88,7 @@ sub updateEntry {
     my $req = HTTP::Request->new(PUT => $url);
     $req->content_type('application/x.atom+xml');
     my $xml = $entry->as_xml;
+    _utf8_off($xml);
     $req->content_length(length $xml);
     $req->content($xml);
     my $res = $client->make_request($req);
@@ -205,6 +207,14 @@ sub munge_response {
 }
 
 sub make_nonce { sha1(sha1(time() . {} . rand() . $$)) }
+
+sub _utf8_off {
+    my $val = shift;
+    if ($] >= 5.008) {
+        require Encode;
+        Encode::_utf8_off($val);
+    }
+}
 
 package LWP::UserAgent::AtomClient;
 use strict;

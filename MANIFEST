@@ -13,6 +13,7 @@ inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/XML/Atom.pm
+lib/XML/Atom/.Client.pm.swp
 lib/XML/Atom/Client.pm
 lib/XML/Atom/Content.pm
 lib/XML/Atom/Entry.pm

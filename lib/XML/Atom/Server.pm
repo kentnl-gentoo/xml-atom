@@ -1,4 +1,4 @@
-# $Id: Server.pm,v 1.5 2004/05/08 13:20:58 btrott Exp $
+# $Id: Server.pm,v 1.6 2004/07/29 16:48:18 btrott Exp $
 
 package XML::Atom::Server;
 use strict;
@@ -60,7 +60,7 @@ sub run {
     }
     my $out;
     eval {
-        $out = $server->handle_request or die $server->errstr;
+        defined($out = $server->handle_request) or die $server->errstr;
         if (defined $out && $server->{is_soap}) {
             $out =~ s!^(<\?xml.*?\?>)!!;
             $out = <<SOAP;

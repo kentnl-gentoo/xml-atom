@@ -1,6 +1,12 @@
-$Id: Changes,v 1.23 2004/06/01 16:56:27 btrott Exp $
+$Id: Changes,v 1.25 2004/07/29 16:51:25 btrott Exp $
 
 Revision history for XML::Atom
+
+0.09  2004.07.29
+    - Fixed "500 Malformed characters in syswrite" bug with utf-8. Thanks to
+      Tatsuhiko Miyagawa for the patch.
+    - Fixed bug in server where empty XML response would cause an error. Thanks
+      to Tatsuhiko Miyagawa for the patch.
 
 0.08  2004.06.01
     - Added XML::Atom::Feed::language method, which returns the language
