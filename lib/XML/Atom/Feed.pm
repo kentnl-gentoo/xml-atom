@@ -1,4 +1,4 @@
-# $Id: Feed.pm,v 1.4 2003/12/15 18:11:59 btrott Exp $
+# $Id: Feed.pm,v 1.5 2003/12/30 06:58:18 btrott Exp $
 
 package XML::Atom::Feed;
 use strict;
@@ -7,6 +7,58 @@ use base qw( XML::Atom::Thing );
 use XML::Atom::Entry;
 
 use constant NS => 'http://purl.org/atom/ns#';
+
+sub init {
+    my $atom = shift;
+    my %param = @_ == 1 ? (Stream => $_[0]) : @_;
+    if (UNIVERSAL::isa($param{Stream}, 'URI')) {
+        my @feeds = __PACKAGE__->find_feeds($param{Stream});
+        return $atom->error("Can't find Atom file") unless @feeds;
+        my $ua = LWP::UserAgent->new;
+        my $req = HTTP::Request->new(GET => $feeds[0]);
+        my $res = $ua->request($req);
+        if ($res->is_success) {
+            delete $param{Stream};
+            my $parser = XML::LibXML->new;
+            $param{Doc} = $parser->parse_string($res->content);
+        }
+    }
+    $atom->SUPER::init(%param);
+}
+
+sub find_feeds {
+    my $class = shift;
+    my($uri) = @_;
+    my $ua = LWP::UserAgent->new;
+    my $req = HTTP::Request->new(GET => $uri);
+    my $res = $ua->request($req);
+    return unless $res->is_success;
+    my @feeds;
+    if ($res->content_type eq 'text/html' || $res->content_type eq 'application/xhtml+xml') {
+        my $base_uri = $uri;
+        my $find_links = sub {
+            my($tag, $attr) = @_;
+            if ($tag eq 'link') {
+                return unless $attr->{rel};
+                my %rel = map { $_ => 1 } split /\s+/, lc($attr->{rel});
+                (my $type = lc $attr->{type}) =~ s/^\s*//;
+                $type =~ s/\s*$//;
+                push @feeds, URI->new_abs($attr->{href}, $base_uri)->as_string
+                   if $rel{alternate} &&
+                      $type eq 'application/atom+xml';
+            } elsif ($tag eq 'base') {
+                $base_uri = $attr->{href};
+            }
+        };
+        require HTML::Parser;
+        my $p = HTML::Parser->new(api_version => 3,
+                                  start_h => [ $find_links, "tagname, attr" ]);
+        $p->parse($res->content);
+    } else {
+        @feeds = ($uri);
+    }
+    @feeds;
+}
 
 sub element_name { 'feed' }
 
@@ -48,7 +100,80 @@ XML::Atom::Feed - Atom feed
     my $xml = $feed->as_xml;
 
     ## Get a list of the <link rel="..." /> tags in the feed.
-    my $links = $feed->get_links;
+    my $links = $feed->link;
+
+    ## Find all of the Atom feeds on a given page, using auto-discovery.
+    my @uris = XML::Atom::Feed->find_feeds('http://www.example.com/');
+
+    ## Use auto-discovery to load the first Atom feed on a given page.
+    my $feed = XML::Atom::Feed->new(URI->new('http://www.example.com/'));
+
+=head1 USAGE
+
+=head2 XML::Atom::Feed->new([ $stream ])
+
+Creates a new feed object, and if I<$stream> is supplied, fills it with the
+data specified by I<$stream>.
+
+Automatically handles autodiscovery if I<$stream> is a URI (see below).
+
+Returns the new I<XML::Atom::Feed> object. On failure, returns C<undef>.
+
+I<$stream> can be any one of the following:
+
+=over 4
+
+=item * Reference to a scalar
+
+This is treated as the XML body of the feed.
+
+=item * Scalar
+
+This is treated as the name of a file containing the feed XML.
+
+=item * Filehandle
+
+This is treated as an open filehandle from which the feed XML can be read.
+
+=item * URI object
+
+This is treated as a URI, and the feed XML will be retrieved from the URI.
+
+If the content type returned from fetching the content at URI is
+I<text/html>, this method will automatically try to perform auto-discovery
+by looking for a I<E<lt>linkE<gt>> tag describing the feed URL. If such
+a URL is found, the feed XML will be automatically retrieved.
+
+If the URI is already of a feed, no auto-discovery is necessary, and the
+feed XML will be retrieved and parsed as normal.
+
+=back
+
+=head2 XML::Atom::Feed->find_feeds($uri)
+
+Given a URI I<$uri>, use auto-discovery to find all of the Atom feeds linked
+from that page (using I<E<lt>linkE<gt>> tags).
+
+Returns a list of feed URIs. 
+
+=head2 $feed->link
+
+If called in scalar context, returns an I<XML::Atom::Link> object
+corresponding to the first I<E<lt>linkE<gt>> tag found in the feed.
+
+If called in list context, returns a list of I<XML::Atom::Link> objects
+corresponding to all of the I<E<lt>linkE<gt>> tags found in the feed.
+
+=head2 $feed->add_link($link)
+
+Adds the link I<$link>, which must be an I<XML::Atom::Link> object, to
+the feed as a new I<E<lt>linkE<gt>> tag. For example:
+
+    my $link = XML::Atom::Link->new;
+    $link->type('text/html');
+    $link->rel('alternate');
+    $link->href('http://www.example.com/');
+    $feed->add_link($link);
 
 =head1 AUTHOR & COPYRIGHT
 

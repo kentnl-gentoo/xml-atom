@@ -1,4 +1,4 @@
-# $Id: Content.pm,v 1.2 2003/12/15 00:03:06 btrott Exp $
+# $Id: Content.pm,v 1.3 2003/12/30 06:58:18 btrott Exp $
 
 package XML::Atom::Content;
 use strict;
@@ -108,7 +108,7 @@ sub body {
 sub as_xml {
     my $content = shift;
     my $doc = XML::LibXML::Document->new('1.0', 'utf-8');
-    $doc->setDocumentElement($_[0]->{doc});
+    $doc->setDocumentElement($content->elem);
     $doc->toString(1);
 }
 

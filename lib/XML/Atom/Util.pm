@@ -1,11 +1,11 @@
-# $Id: Util.pm,v 1.2 2003/09/28 20:26:07 btrott Exp $
+# $Id: Util.pm,v 1.3 2003/12/24 08:56:39 btrott Exp $
 
 package XML::Atom::Util;
 use strict;
 
 use vars qw( @EXPORT_OK @ISA );
 use Exporter;
-@EXPORT_OK = qw( first textValue iso2dt );
+@EXPORT_OK = qw( first textValue iso2dt encode_xml );
 @ISA = qw( Exporter );
 
 sub first {
@@ -42,6 +42,16 @@ sub iso2dt {
     $dt;
 }
 
+my %Map = ('&' => '&amp;', '"' => '&quot;', '<' => '&lt;', '>' => '&gt;',
+           '\'' => '&apos;');
+my $RE = join '|', keys %Map;
+
+sub encode_xml {
+    my($str) = @_;
+    $str =~ s!($RE)!$Map{$1}!g;
+    $str;
+}
+
 1;
 __END__
 
@@ -60,6 +70,11 @@ XML::Atom::Util - Utility functions
 
 Transforms the ISO-8601 date I<$iso> into a I<DateTime> object and returns
 the I<DateTime> object.
+
+=head2 encode_xml($str)
+
+Encodes characters with special meaning in XML into entities and returns
+the encoded string.
 
 =head1 AUTHOR & COPYRIGHT
 

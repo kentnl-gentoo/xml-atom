@@ -1,35 +1,41 @@
-# $Id: Makefile.PL,v 1.4 2003/09/08 07:33:37 btrott Exp $
+# $Id: Makefile.PL,v 1.7 2003/12/30 06:59:05 btrott Exp $
 
-use ExtUtils::MakeMaker;
-use strict;
+use inc::Module::Install;
 
-use ExtUtils::AutoInstall (
-    -core => [
-        'XML::LibXML' => 1.54,
-        'MIME::Base64' => 0,
+name('XML-Atom');
+abstract('Atom API and Feed Support');
+author('Benjamin Trott <cpan@stupidfool.org>');
+version_from('lib/XML/Atom.pm');
+license('perl');
+no_index(directory => 't');
+sign(1);
+
+include('ExtUtils::AutoInstall');
+
+requires('XML::LibXML' => 1.54);
+requires('MIME::Base64');
+requires('URI');
+
+features(
+    'Client/Server for Atom API' => [
+        -default => 1,
+        recommends('LWP'),
+        recommends('Digest::SHA1'),
+        recommends('DateTime'),
     ],
 
-    'Client API' => [
+    'Feed and API Auto-discovery' => [
         -default => 1,
-        'LWP' => 0,
-        'Digest::SHA1' => 0,
-    ],
-
-    'Auto-discovery' => [
-        -default => 1,
-        'HTML::Parser' => 0,
+        recommends('HTML::Parser'),
     ],
 
     'Namespace Normalization' => [
         -default => 0,
-        'XML::LibXSLT' => 0,
+        recommends('XML::LibXSLT'),
     ],
 );
 
-WriteMakefile(
-    NAME => 'XML::Atom',
-    DISTNAME => 'XML-Atom',
-    VERSION_FROM => 'lib/XML/Atom.pm',
-    AUTHOR => 'Benjamin Trott <cpan@stupidfool.org>',
-    ABSTRACT => 'Atom API and Feed support',
-);
+auto_include();
+auto_install();
+
+&WriteAll;

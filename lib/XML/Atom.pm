@@ -1,4 +1,4 @@
-# $Id: Atom.pm,v 1.6 2003/12/15 18:11:59 btrott Exp $
+# $Id: Atom.pm,v 1.11 2004/01/05 16:17:41 btrott Exp $
 
 package XML::Atom;
 use strict;
@@ -6,12 +6,7 @@ use strict;
 use base qw( XML::Atom::ErrorHandler );
 
 use vars qw( $VERSION );
-$VERSION = '0.041';
-
-## Methods to:
-##     - set defaults (encoding, language?)
-##     - set up modules/namespaces (add_module)
-##     - syntactic sugar (new_feed, new_entry, etc)
+$VERSION = '0.05';
 
 package XML::Atom::Namespace;
 use strict;

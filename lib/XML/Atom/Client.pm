@@ -1,6 +1,6 @@
-# $Id: API.pm,v 1.15 2003/12/15 07:42:53 btrott Exp $
+# $Id: Client.pm,v 1.17 2003/12/24 08:59:16 btrott Exp $
 
-package XML::Atom::API;
+package XML::Atom::Client;
 use strict;
 
 use base qw( XML::Atom::ErrorHandler );
@@ -10,7 +10,7 @@ use XML::Atom::Entry;
 use XML::Atom::Feed;
 use XML::Atom::Util qw( first textValue );
 use XML::LibXML;
-use Digest::SHA1 qw( sha1_hex );
+use Digest::SHA1 qw( sha1 sha1_hex );
 use MIME::Base64 qw( encode_base64 );
 use DateTime;
 
@@ -134,7 +134,7 @@ sub munge_request {
     my($req) = @_;
     my $nonce = $client->make_nonce;
     my $now = DateTime->now->iso8601 . 'Z';
-    my $digest = encode_base64(sha1_hex($nonce . $now . ($client->password || '')), '');
+    my $digest = encode_base64(sha1($nonce . $now . ($client->password || '')), '');
     if ($client->use_soap) {
         my $xml = $req->content || '';
         $xml =~ s!^(<\?xml.*?\?>)!!;
@@ -204,13 +204,13 @@ __END__
 
 =head1 NAME
 
-XML::Atom::API - A client for the Atom API
+XML::Atom::Client - A client for the Atom API
 
 =head1 SYNOPSIS
 
-    use XML::Atom::API;
+    use XML::Atom::Client;
     use XML::Atom::Entry;
-    my $api = XML::Atom::API->new;
+    my $api = XML::Atom::Client->new;
     $api->username('Melody');
     $api->password('Nelson');
 
@@ -226,8 +226,8 @@ XML::Atom::API - A client for the Atom API
 
 =head1 DESCRIPTION
 
-I<XML::Atom::API> implements a client for the Atom API described at
-I<http://bitworking.org/rfc/draft-gregorio-07.html>, with the
+I<XML::Atom::Client> implements a client for the Atom API described at
+I<http://bitworking.org/projects/atom/draft-gregorio-09.html>, with the
 authentication scheme described at
 I<http://www.intertwingly.net/wiki/pie/DifferentlyAbledClients>.
 
@@ -236,11 +236,11 @@ in flux.
 
 =head1 USAGE
 
-=head2 XML::Atom::API->new(%param)
+=head2 XML::Atom::Client->new(%param)
 
 =head2 $api->use_soap([ 0 | 1 ])
 
-I<XML::Atom::API> supports both the REST and SOAP-wrapper versions of the
+I<XML::Atom::Client> supports both the REST and SOAP-wrapper versions of the
 Atom API. By default, the REST version of the API will be used, but you can
 turn on the SOAP wrapper--for example, if you need to connect to a server
 that supports only the SOAP wrapper--by calling I<use_soap> with a value of

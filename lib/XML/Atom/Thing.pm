@@ -1,4 +1,4 @@
-# $Id: Thing.pm,v 1.8 2003/12/15 07:59:45 btrott Exp $
+# $Id: Thing.pm,v 1.9 2003/12/30 06:58:18 btrott Exp $
 
 package XML::Atom::Thing;
 use strict;
@@ -6,6 +6,8 @@ use strict;
 use base qw( XML::Atom::ErrorHandler );
 use XML::LibXML;
 use LWP::UserAgent;
+use XML::Atom::Util qw( first );
+use XML::Atom::Link;
 
 use constant NS => 'http://purl.org/atom/ns#';
 
@@ -18,16 +20,12 @@ sub new {
 
 sub init {
     my $atom = shift;
-    my %param = @_;
+    my %param = @_ == 1 ? (Stream => $_[0]) : @_;
     if (%param) {
         if (my $stream = $param{Stream}) {
             my $parser = XML::LibXML->new;
             if (ref($stream) eq 'SCALAR') {
                 $atom->{doc} = $parser->parse_string($$stream);
-            } elsif (UNIVERSAL::isa($stream, 'URI')) {
-                ($stream, my($data)) = $atom->find_atom($stream);
-                return $atom->error("Can't find Atom file") unless $stream;
-                $atom->{doc} = $parser->parse_string($data);
             } elsif (ref($stream)) {
                 $atom->{doc} = $parser->parse_fh($stream);
             } else {
@@ -47,49 +45,11 @@ sub init {
     $atom;
 }
 
-sub find_atom {
-    my $atom = shift;
-    my($uri) = @_;
-    my $ua = LWP::UserAgent->new;
-    my $req = HTTP::Request->new(GET => $uri);
-    my $res = $ua->request($req);
-    return unless $res->is_success;
-    if ($res->content_type eq 'text/html') {
-        my $atom_url;
-        my $find_links = sub {
-            my($tag, $attr) = @_;
-            $atom_url = $attr->{href}
-                if $tag eq 'link' &&
-                   $attr->{rel} eq 'alternate' &&
-                   $attr->{type} eq 'application/atom+xml' &&
-                   $attr->{title} eq 'Atom';
-        };
-        require HTML::Parser;
-        my $p = HTML::Parser->new(api_version => 3,
-                                  start_h => [ $find_links, "tagname, attr" ]);
-        $p->parse($res->content);
-        if ($atom_url) {
-            $atom_url = URI->new_abs($atom_url, $uri);
-            $req = HTTP::Request->new(GET => $atom_url);
-            $res = $ua->request($req);
-            return($atom_url, $res->content)
-                if $res->is_success;
-        }
-    } else {
-        return($uri, $res->content);
-    }
-}
-
-sub _first {
-    my @res = $_[1]->getElementsByTagNameNS($_[2], $_[3]) or return;
-    $res[0];
-}
-
 sub get {
     my $atom = shift;
     my($ns, $name) = @_;
     my $ns_uri = ref($ns) eq 'XML::Atom::Namespace' ? $ns->{uri} : $ns;
-    my $node = $atom->_first($atom->{doc}, $ns_uri, $name);
+    my $node = first($atom->{doc}, $ns_uri, $name);
     return unless $node;
     my $val = $node->textContent;
     if ($] >= 5.008) {
@@ -104,7 +64,7 @@ sub set {
     my($ns, $name, $val, $attr) = @_;
     my $elem;
     my $ns_uri = ref($ns) eq 'XML::Atom::Namespace' ? $ns->{uri} : $ns;
-    unless ($elem = $atom->_first($atom->{doc}, $ns_uri, $name)) {
+    unless ($elem = first($atom->{doc}, $ns_uri, $name)) {
         $elem = $atom->{doc}->createElementNS($ns_uri, $name);
         $atom->{doc}->getDocumentElement->appendChild($elem);
     }
@@ -128,28 +88,27 @@ sub set {
 
 sub add_link {
     my $thing = shift;
-    my($attr) = @_;
+    my($link) = @_;
     my $elem = $thing->{doc}->createElementNS(NS, 'link');
     $thing->{doc}->getDocumentElement->appendChild($elem);
-    while (my($k, $v) = each %$attr) {
-        $elem->setAttribute($k, $v);
+    for my $k (qw( type rel href title )) {
+        $elem->setAttribute($k, $link->$k());
     }
 }
 
-sub get_links {
+sub link {
     my $thing = shift;
-    my @res = $thing->{doc}->getElementsByTagNameNS(NS, 'link');
-    my @links;
-    for my $node (@res) {
-        next unless $node->getAttribute('rel');
-        push @links, {
-            rel => $node->getAttribute('rel'),
-            type => $node->getAttribute('type'),
-            title => $node->getAttribute('title'),
-            href => $node->getAttribute('href'),
-        };
+    if (wantarray) {
+        my @res = $thing->{doc}->getElementsByTagNameNS(NS, 'link');
+        my @links;
+        for my $elem (@res) {
+            push @links, XML::Atom::Link->new(Elem => $elem);
+        }
+        return @links;
+    } else {
+        my $elem = first($thing->{doc}, NS, 'link') or return;
+        return XML::Atom::Link->new(Elem => $elem);
     }
-    \@links;
 }
 
 sub as_xml {

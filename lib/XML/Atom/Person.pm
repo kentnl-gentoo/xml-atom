@@ -1,10 +1,11 @@
-# $Id: Person.pm,v 1.1 2003/12/13 08:28:41 btrott Exp $
+# $Id: Person.pm,v 1.2 2003/12/30 06:58:18 btrott Exp $
 
 package XML::Atom::Person;
 use strict;
 
 use base qw( XML::Atom::ErrorHandler );
 use XML::LibXML;
+use XML::Atom::Util qw( first );
 
 use constant NS => 'http://purl.org/atom/ns#';
 
@@ -30,17 +31,10 @@ sub init {
 
 sub elem { $_[0]->{elem} }
 
-sub _first {
-    my $person = shift;
-    my $elem = $person->elem;
-    my @res = $elem->getElementsByTagNameNS(NS, $_[0]) or return;
-    $res[0];
-}
-
 sub get {
     my $person = shift;
     my($name) = @_;
-    my $node = $person->_first($name) or return;
+    my $node = first($person->elem, NS, $name) or return;
     my $val = $node->textContent;
     if ($] >= 5.008) {
         require Encode;
@@ -53,7 +47,7 @@ sub set {
     my $person = shift;
     my($name, $val) = @_;
     my $elem;
-    unless ($elem = $person->_first($name)) {
+    unless ($elem = first($person->elem, NS, $name)) {
         $elem = XML::LibXML::Element->new($name);
         $elem->setNamespace(NS);
         $person->elem->appendChild($elem);

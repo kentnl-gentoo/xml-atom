@@ -1,6 +1,29 @@
-$Id: Changes,v 1.10 2003/12/15 18:11:59 btrott Exp $
+$Id: Changes,v 1.15 2004/01/05 16:17:41 btrott Exp $
 
 Revision history for XML::Atom
+
+0.05  2004.01.05
+    - BACKWARDS INCOMPABILITY:
+      Removed XML::Atom::Entry::get_links and XML::Atom::Feed::get_links,
+      in favor of new link() method in both classes, which returns a list
+      of XML::Atom::Link objects. Also, add_link() now expects an
+      XML::Atom::Link object instead of a hash reference.
+    - BACKWARDS INCOMPABILITY:
+      Renamed XML::Atom::API to XML::Atom::Client.
+    - Added XML::Atom::Link, an encapsulation of the <link> tag in a feed
+      or an entry.
+    - Added XML::Atom::Server, an implementation of an Atom core server
+      (to be subclassed for implementation-specific methods).
+    - Fixed feed auto-discovery to work with all client tests at
+      http://diveintomark.org/tests/client/autodiscovery/
+    - Added (and documented) XML::Atom::Feed->find_feeds, to return all
+      of the Atom feed URIs on a page given a URI.
+    - Fixed issue with PasswordDigest in API (use sha(), not hex(sha())
+      for generating password digest).
+    - Stream parameter to XML::Atom::Entry::new and XML::Atom::Feed::new
+      is now optional; if passed only one parameter, it's assumed to be
+      the Stream parameter.
+    - Fixed bug in XML::Atom::Content::as_xml (it didn't work).
 
 0.041 2003.12.15
     - Fixed issue with calling $entry->content on list of entries generated

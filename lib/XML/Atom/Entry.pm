@@ -1,4 +1,4 @@
-# $Id: Entry.pm,v 1.10 2003/12/15 00:39:17 btrott Exp $
+# $Id: Entry.pm,v 1.11 2003/12/30 06:58:18 btrott Exp $
 
 package XML::Atom::Entry;
 use strict;
@@ -7,6 +7,7 @@ use base qw( XML::Atom::Thing );
 use MIME::Base64 qw( encode_base64 decode_base64 );
 use XML::Atom::Person;
 use XML::Atom::Content;
+use XML::Atom::Util qw( first );
 
 use constant NS => 'http://purl.org/atom/ns#';
 
@@ -18,7 +19,7 @@ sub _element {
     my $root = $entry->{doc}->getDocumentElement;
     if (@_) {
         my $obj = shift;
-        if (my $node = $entry->_first($entry->{doc}, NS, $name)) {
+        if (my $node = first($entry->{doc}, NS, $name)) {
             $root->removeChild($node);
         }
         my $elem = $entry->{doc}->createElementNS(NS, $name);
@@ -34,7 +35,7 @@ sub _element {
         $entry->{'__' . $name} = $obj;
     } else {
         unless (exists $entry->{'__' . $name}) {
-            my $elem = $entry->_first($entry->{doc}, NS, $name) or return;
+            my $elem = first($entry->{doc}, NS, $name) or return;
             $entry->{'__' . $name} = $class->new(Elem => $elem);
         }
     }
@@ -74,21 +75,37 @@ XML::Atom::Entry - Atom entry
 
 =head1 USAGE
 
-=head2 XML::Atom::Entry->new
+=head2 XML::Atom::Entry->new([ $stream ])
 
-Creates and returns a new entry object.
+Creates a new entry object, and if I<$stream> is supplied, fills it with the
+data specified by I<$stream>.
+
+Automatically handles autodiscovery if I<$stream> is a URI (see below).
+
+Returns the new I<XML::Atom::Entry> object. On failure, returns C<undef>.
+
+I<$stream> can be any one of the following:
+
+=over 4
+
+=item * Reference to a scalar
+
+This is treated as the XML body of the entry.
+
+=item * Scalar
+
+This is treated as the name of a file containing the entry XML.
+
+=item * Filehandle
+
+This is treated as an open filehandle from which the entry XML can be read.
+
+=back
 
 =head2 $entry->content([ $content ])
 
 Returns the content of the entry. If I<$content> is given, sets the content
 of the entry. Automatically handles all necessary escaping.
-
-=head2 $entry->content_type([ $type ])
-
-Returns the content type of the content in I<content>. If I<$type> is given,
-sets the content type of the entry.
-
-NOTE: this interface is almost certain to change.
 
 =head2 $entry->author([ $author ])
 
@@ -102,6 +119,25 @@ representing the author. For example:
     $author->name('Foo Bar');
     $author->email('foo@bar.com');
     $entry->author($author);
+
+=head2 $entry->link
+
+If called in scalar context, returns an I<XML::Atom::Link> object
+corresponding to the first I<E<lt>linkE<gt>> tag found in the entry.
+
+If called in list context, returns a list of I<XML::Atom::Link> objects
+corresponding to all of the I<E<lt>linkE<gt>> tags found in the entry.
+
+=head2 $entry->add_link($link)
+
+Adds the link I<$link>, which must be an I<XML::Atom::Link> object, to
+the entry as a new I<E<lt>linkE<gt>> tag. For example:
+
+    my $link = XML::Atom::Link->new;
+    $link->type('text/html');
+    $link->rel('alternate');
+    $link->href('http://www.example.com/2003/12/post.html');
+    $entry->add_link($link);
 
 =head1 AUTHOR & COPYRIGHT
 
