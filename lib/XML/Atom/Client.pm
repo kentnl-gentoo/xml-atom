@@ -1,15 +1,14 @@
-# $Id: Client.pm,v 1.18 2004/04/24 10:09:12 btrott Exp $
+# $Id: Client.pm,v 1.20 2004/05/08 15:26:34 btrott Exp $
 
 package XML::Atom::Client;
 use strict;
 
+use XML::Atom;
 use base qw( XML::Atom::ErrorHandler );
 use LWP::UserAgent;
-use XML::Atom;
 use XML::Atom::Entry;
 use XML::Atom::Feed;
 use XML::Atom::Util qw( first textValue );
-use XML::LibXML;
 use Digest::SHA1 qw( sha1 );
 use MIME::Base64 qw( encode_base64 );
 use DateTime;
@@ -27,7 +26,7 @@ sub new {
 sub init {
     my $client = shift;
     my %param = @_;
-    $client->{ua} = LWP::UserAgent->new;
+    $client->{ua} = LWP::UserAgent::AtomClient->new($client);
     $client->{ua}->agent('XML::Atom/' . XML::Atom->VERSION);
     $client;
 }
@@ -132,6 +131,9 @@ sub make_request {
 sub munge_request {
     my $client = shift;
     my($req) = @_;
+    $req->header(
+        Accept => 'application/x.atom+xml, application/xml, text/xml, */*',
+    );
     my $nonce = $client->make_nonce;
     my $nonce_enc = encode_base64($nonce, '');
     my $now = DateTime->now->iso8601 . 'Z';
@@ -179,8 +181,14 @@ sub munge_response {
     my $client = shift;
     my($res) = @_;
     if ($client->use_soap && (my $xml = $res->content)) {
-        my $parser = XML::LibXML->new;
-        my $doc = $parser->parse_string($xml);
+        my $doc;
+        if (LIBXML) {
+            my $parser = XML::LibXML->new;
+            $doc = $parser->parse_string($xml);
+        } else {
+            my $xp = XML::XPath->new(xml => $xml);
+            $doc = ($xp->find('/')->get_nodelist)[0];
+        }
         my $body = first($doc, NS_SOAP, 'Body');
         if (my $fault = first($body, NS_SOAP, 'Fault')) {
             $res->code(textValue($fault, undef, 'faultcode'));
@@ -188,16 +196,82 @@ sub munge_response {
             $res->content('');
             $res->content_length(0);
         } else {
-            $xml = join '', map $_->toString(1), $body->childNodes;
+            $xml = join '', map $_->toString(LIBXML ? 1 : 0),
+                LIBXML ? $body->childNodes : $body->getChildNodes;
             $res->content($xml);
             $res->content_length(1);
         }
     }
 }
 
-sub make_nonce {
-    my $app = shift;
-    sha1(sha1(time() . {} . rand() . $$));
+sub make_nonce { sha1(sha1(time() . {} . rand() . $$)) }
+
+package LWP::UserAgent::AtomClient;
+use strict;
+
+use base qw( LWP::UserAgent );
+
+my %ClientOf;
+sub new {
+    my($class, $client) = @_;
+    my $ua = $class->SUPER::new;
+    $ClientOf{$ua} = $client;
+    $ua;
+}
+
+sub get_basic_credentials {
+    my($ua, $realm, $url, $proxy) = @_;
+    my $client = $ClientOf{$ua} or die "Cannot find $ua";
+    return $client->username, $client->password;
+}
+
+sub DESTROY {
+    my $self = shift;
+    delete $ClientOf{$self};
+}
+
+package LWP::Authen::Wsse;
+use strict;
+
+use MIME::Base64;
+use Digest::SHA1;
+use DateTime;
+
+sub authenticate {
+    my($class, $ua, $proxy, $auth_param, $res, $req, $arg, $size) = @_;
+    my($user, $pass) = $ua->get_basic_credentials($auth_param->{realm},
+        $req->url, $proxy);
+    return $res unless defined $user && defined $pass;
+
+    my $nonce = XML::Atom::Client->make_nonce;
+    my $nonce_enc = MIME::Base64::encode_base64($nonce, '');
+    my $now = DateTime->now->iso8601 . 'Z';
+    my $digest = MIME::Base64::encode_base64(
+        Digest::SHA1::sha1($nonce . $now . ($pass || '')), ''
+    );
+
+    my $auth_header = $proxy ? "Proxy-Authorization" : "Authorization";
+    my $wsse_value = sprintf
+        qq(UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
+        $user || '', $digest, $nonce_enc, $now;
+
+    # Need to check this isn't a repeated fail!
+    my $r = $res;
+    while ($r) {
+        my $wsse = $r->request->header('X-WSSE');
+        if ($wsse && $wsse eq $wsse_value) {
+            # here we know this failed before
+            $res->header("Client-Warning" =>
+                "Credentials for '$user' failed before");
+            return $res;
+        }
+        $r = $r->previous;
+    }
+
+    my $referral = $req->clone;
+    $referral->header($auth_header, 'WSSE profile="UsernameToken"');
+    $referral->header('X-WSSE' => $wsse_value);
+    return $ua->request($referral, $arg, $size, $res);
 }
 
 1;

@@ -1,10 +1,20 @@
-# $Id: Feed.pm,v 1.5 2003/12/30 06:58:18 btrott Exp $
+# $Id: Feed.pm,v 1.6 2004/05/08 13:20:58 btrott Exp $
 
 package XML::Atom::Feed;
 use strict;
 
+use XML::Atom;
 use base qw( XML::Atom::Thing );
 use XML::Atom::Entry;
+BEGIN {
+    if (LIBXML) {
+        *entries = \&entries_libxml;
+        *add_entry = \&add_entry_libxml;
+    } else {
+        *entries = \&entries_xpath;
+        *add_entry = \&add_entry_xpath;
+    }
+}
 
 use constant NS => 'http://purl.org/atom/ns#';
 
@@ -18,9 +28,7 @@ sub init {
         my $req = HTTP::Request->new(GET => $feeds[0]);
         my $res = $ua->request($req);
         if ($res->is_success) {
-            delete $param{Stream};
-            my $parser = XML::LibXML->new;
-            $param{Doc} = $parser->parse_string($res->content);
+            $param{Stream} = \$res->content;
         }
     }
     $atom->SUPER::init(%param);
@@ -62,7 +70,7 @@ sub find_feeds {
 
 sub element_name { 'feed' }
 
-sub entries {
+sub entries_libxml {
     my $feed = shift;
     my @res = $feed->{doc}->getElementsByTagNameNS(NS, 'entry') or return;
     my @entries;
@@ -73,10 +81,32 @@ sub entries {
     @entries;
 }
 
-sub add_entry {
+sub entries_xpath {
+    my $feed = shift;
+    my $set = $feed->{doc}->find("descendant-or-self::*[local-name()='entry' and namespace-uri()='" . NS . "']");
+    my @entries;
+    for my $elem ($set->get_nodelist) {
+        ## Delete the link to the parent (feed) element, and append
+        ## the default Atom namespace.
+        $elem->del_parent_link;
+        my $ns = XML::XPath::Node::Namespace->new('#default' => NS);
+        $elem->appendNamespace($ns);
+        my $entry = XML::Atom::Entry->new(Elem => $elem);
+        push @entries, $entry;
+    }
+    @entries;
+}
+
+sub add_entry_libxml {
     my $feed = shift;
     my($entry) = @_;
     $feed->{doc}->getDocumentElement->appendChild($entry->{doc}->getDocumentElement);
+}
+
+sub add_entry_xpath {
+    my $feed = shift;
+    my($entry) = @_;
+    $feed->{doc}->appendChild($entry->{doc});
 }
 
 1;

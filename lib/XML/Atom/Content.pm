@@ -1,10 +1,10 @@
-# $Id: Content.pm,v 1.3 2003/12/30 06:58:18 btrott Exp $
+# $Id: Content.pm,v 1.5 2004/05/08 18:33:46 btrott Exp $
 
 package XML::Atom::Content;
 use strict;
 
+use XML::Atom;
 use base qw( XML::Atom::ErrorHandler );
-use XML::LibXML;
 use MIME::Base64 qw( encode_base64 decode_base64 );
 
 use constant NS => 'http://purl.org/atom/ns#';
@@ -21,9 +21,13 @@ sub init {
     my %param = @_ == 1 ? (Body => $_[0]) : @_;
     my $elem;
     unless ($elem = $param{Elem}) {
-        my $doc = XML::LibXML::Document->createDocument('1.0', 'utf-8');
-        $elem = $doc->createElementNS(NS, 'content');
-        $doc->setDocumentElement($elem);
+        if (LIBXML) {
+            my $doc = XML::LibXML::Document->createDocument('1.0', 'utf-8');
+            $elem = $doc->createElementNS(NS, 'content');
+            $doc->setDocumentElement($elem);
+        } else {
+            $elem = XML::XPath::Node::Element->new('content');
+        }
     }
     $content->{elem} = $elem;
     if ($param{Body}) {
@@ -55,9 +59,17 @@ sub body {
     my $elem = $content->elem;
     if (@_) {
         my $data = shift;
-        $elem->removeChildNodes;
+        if (LIBXML) {
+            $elem->removeChildNodes;
+        } else {
+            $elem->removeChild($_) for $elem->getChildNodes;
+        }
         if ($data =~ /[^\x09\x0a\x0d\x20-\x7f]/) {
-            $elem->appendChild(XML::LibXML::Text->new(encode_base64($data, '')));
+            if (LIBXML) {
+               $elem->appendChild(XML::LibXML::Text->new(encode_base64($data, '')));
+            } else {
+               $elem->appendChild(XML::XPath::Node::Text->new(encode_base64($data, '')));
+            }
             $elem->setAttribute('mode', 'base64');
         } else {
             my $copy = '<div xmlns="http://www.w3.org/1999/xhtml">' .
@@ -65,15 +77,25 @@ sub body {
                        '</div>';
             my $node;
             eval {
-                my $parser = XML::LibXML->new;
-                my $tree = $parser->parse_string($copy);
-                $node = $tree->getDocumentElement;
+                if (LIBXML) {
+                    my $parser = XML::LibXML->new;
+                    my $tree = $parser->parse_string($copy);
+                    $node = $tree->getDocumentElement;
+                } else {
+                    my $xp = XML::XPath->new(xml => $copy);
+                    $node = (($xp->find('/')->get_nodelist)[0]->getChildNodes)[0]
+                        if $xp;
+                }
             };
             if (!$@ && $node) {
                 $elem->appendChild($node);
                 $elem->setAttribute('mode', 'xml');
             } else {
-                $elem->appendChild(XML::LibXML::Text->new($data));
+                if (LIBXML) {
+                    $elem->appendChild(XML::LibXML::Text->new($data));
+                } else {
+                    $elem->appendChild(XML::XPath::Node::Text->new($data));
+                }
                 $elem->setAttribute('mode', 'escaped');
             }
         }
@@ -81,18 +103,22 @@ sub body {
         unless (exists $content->{__body}) {
             my $mode = $elem->getAttribute('mode') || 'xml';
             if ($mode eq 'xml') {
-                my @children = grep ref($_) =~ /Element$/, $elem->childNodes;
+                my @children = grep ref($_) =~ /Element/,
+                    LIBXML ? $elem->childNodes : $elem->getChildNodes;
                 if (@children) {
-                    @children = $children[0]->childNodes
-                        if @children == 1 && $children[0]->localname eq 'div';
-                    $content->{__body} = join '', map $_->toString, @children;
+                    if (@children == 1 && $children[0]->getLocalName eq 'div') {
+                        @children =
+                            LIBXML ? $children[0]->childNodes :
+                                     $children[0]->getChildNodes
+                    }
+                    $content->{__body} = join '', map $_->toString(LIBXML ? 1 : 0), @children;
                 } else {
-                    $content->{__body} = $elem->textContent;
+                    $content->{__body} = LIBXML ? $elem->textContent : $elem->string_value;
                 }
             } elsif ($mode eq 'base64') {
-                $content->{__body} = decode_base64($elem->textContent);
+                $content->{__body} = decode_base64(LIBXML ? $elem->textContent : $elem->string_value);
             } elsif ($mode eq 'escaped') {
-                $content->{__body} = $elem->textContent;
+                $content->{__body} = LIBXML ? $elem->textContent : $elem->string_value;
             } else {
                 $content->{__body} = undef;
             }
@@ -107,9 +133,13 @@ sub body {
 
 sub as_xml {
     my $content = shift;
-    my $doc = XML::LibXML::Document->new('1.0', 'utf-8');
-    $doc->setDocumentElement($content->elem);
-    $doc->toString(1);
+    if (LIBXML) {
+        my $doc = XML::LibXML::Document->new('1.0', 'utf-8');
+        $doc->setDocumentElement($content->elem);
+        return $doc->toString(1);
+    } else {
+        return $content->elem->toString;
+    }
 }
 
 1;

@@ -1,6 +1,17 @@
-$Id: Changes,v 1.16 2004/04/24 10:09:12 btrott Exp $
+$Id: Changes,v 1.20 2004/05/15 12:11:40 btrott Exp $
 
 Revision history for XML::Atom
+
+0.07  2004.05.15
+    - Added (experimental) support for using XML::XPath as an alternative
+      to XML::LibXML. This is detected automatically upon loading XML::Atom;
+      XML::LibXML is still the default.
+    - WSSE authentication tokens now persist properly across server
+      redirects. Thanks to Autrijus Tang for the patch.
+    - Fixed bug where empty password (empty string or "0") would cause
+      an invalid login in Atom server core. Also, improved error message
+      on invalid password for security. Thanks to Tatsuhiki Miyagawa
+      for the patch.
 
 0.06  2004.04.14
     - BACKWARDS INCOMPATIBILITY:

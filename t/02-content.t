@@ -1,16 +1,20 @@
-# $Id: 02-content.t,v 1.2 2003/12/13 08:32:06 btrott Exp $
+# $Id: 02-content.t,v 1.3 2004/05/08 18:33:46 btrott Exp $
 
 use strict;
 
 use Test;
 use XML::Atom::Content;
 
-BEGIN { plan tests => 20 };
+BEGIN { plan tests => 22 };
 
 my $content;
 
 $content = XML::Atom::Content->new;
 ok($content->elem);
+$content->type('image/jpeg');
+ok($content->type, 'image/jpeg');
+$content->type('application/gzip');
+ok($content->type, 'application/gzip');
 
 $content = XML::Atom::Content->new('This is a test.');
 ok($content->body);

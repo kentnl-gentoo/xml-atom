@@ -1,23 +1,32 @@
-# $Id: Util.pm,v 1.3 2003/12/24 08:56:39 btrott Exp $
+# $Id: Util.pm,v 1.4 2004/05/08 13:20:58 btrott Exp $
 
 package XML::Atom::Util;
 use strict;
 
+use XML::Atom;
 use vars qw( @EXPORT_OK @ISA );
 use Exporter;
 @EXPORT_OK = qw( first textValue iso2dt encode_xml );
 @ISA = qw( Exporter );
 
 sub first {
-    my @res = $_[1] ? $_[0]->getElementsByTagNameNS($_[1], $_[2]) :
-                      $_[0]->getElementsByTagName($_[2]);
-    return unless @res;
-    $res[0];
+    if (LIBXML) {
+        my @res = $_[1] ? $_[0]->getElementsByTagNameNS($_[1], $_[2]) :
+                          $_[0]->getElementsByTagName($_[2]);
+        return unless @res;
+        return $res[0];
+    } else {
+        my $set = $_[1] ?
+            $_[0]->find("descendant::*[local-name()='$_[2]' and namespace-uri()='$_[1]']") :
+            $_[0]->find("descendant::$_[2]");
+        return unless $set && $set->isa('XML::XPath::NodeSet');
+        ($set->get_nodelist)[0];
+    }
 }
 
 sub textValue {
     my $node = first(@_) or return;
-    $node->textContent;
+    LIBXML ? $node->textContent : $node->string_value;
 }
 
 sub iso2dt {

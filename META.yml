@@ -1,5 +1,5 @@
 name: XML-Atom
-version: 0.06
+version: 0.07
 abstract: Atom API and Feed Support
 author: Benjamin Trott <cpan@stupidfool.org>
 license: perl

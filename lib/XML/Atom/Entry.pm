@@ -1,8 +1,9 @@
-# $Id: Entry.pm,v 1.11 2003/12/30 06:58:18 btrott Exp $
+# $Id: Entry.pm,v 1.13 2004/05/09 10:44:55 btrott Exp $
 
 package XML::Atom::Entry;
 use strict;
 
+use XML::Atom;
 use base qw( XML::Atom::Thing );
 use MIME::Base64 qw( encode_base64 decode_base64 );
 use XML::Atom::Person;
@@ -16,20 +17,31 @@ sub element_name { 'entry' }
 sub _element {
     my $entry = shift;
     my($class, $name) = (shift, shift);
-    my $root = $entry->{doc}->getDocumentElement;
+    my $root = LIBXML ? $entry->{doc}->getDocumentElement : $entry->{doc};
     if (@_) {
         my $obj = shift;
         if (my $node = first($entry->{doc}, NS, $name)) {
             $root->removeChild($node);
         }
-        my $elem = $entry->{doc}->createElementNS(NS, $name);
+        my $elem = LIBXML ?
+            $entry->{doc}->createElementNS(NS, $name) :
+            XML::XPath::Node::Element->new($name);
         $root->appendChild($elem);
-        for my $child ($obj->elem->childNodes) {
-            $elem->appendChild($child->cloneNode(1));
-        }
-        for my $attr ($obj->elem->attributes) {
-            next unless ref($attr) eq 'XML::LibXML::Attr';
-            $elem->setAttribute($attr->getName, $attr->getValue);
+        if (LIBXML) {
+            for my $child ($obj->elem->childNodes) {
+                $elem->appendChild($child->cloneNode(1));
+            }
+            for my $attr ($obj->elem->attributes) {
+                next unless ref($attr) eq 'XML::LibXML::Attr';
+                $elem->setAttribute($attr->getName, $attr->getValue);
+            }
+        } else {
+            for my $child ($obj->elem->getChildNodes) {
+                $elem->appendChild($child);
+            }
+            for my $attr ($obj->elem->getAttributes) {
+                $elem->appendAttribute($attr);
+            }
         }
         $obj->{elem} = $elem;
         $entry->{'__' . $name} = $obj;
@@ -109,13 +121,13 @@ of the entry. Automatically handles all necessary escaping.
 
 =head2 $entry->author([ $author ])
 
-Returns an I<XML::Atom::Author> object representing the author of the entry,
+Returns an I<XML::Atom::Person> object representing the author of the entry,
 or C<undef> if there is no author information present.
 
-If I<$author> is supplied, it should be an I<XML::Atom::Author> object
+If I<$author> is supplied, it should be an I<XML::Atom::Person> object
 representing the author. For example:
 
-    my $author = XML::Atom::Author->new;
+    my $author = XML::Atom::Person->new;
     $author->name('Foo Bar');
     $author->email('foo@bar.com');
     $entry->author($author);

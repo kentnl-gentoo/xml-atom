@@ -1,10 +1,10 @@
-# $Id: Person.pm,v 1.2 2003/12/30 06:58:18 btrott Exp $
+# $Id: Person.pm,v 1.3 2004/05/08 13:20:58 btrott Exp $
 
 package XML::Atom::Person;
 use strict;
 
+use XML::Atom;
 use base qw( XML::Atom::ErrorHandler );
-use XML::LibXML;
 use XML::Atom::Util qw( first );
 
 use constant NS => 'http://purl.org/atom/ns#';
@@ -21,9 +21,15 @@ sub init {
     my %param = @_;
     my $elem;
     unless ($elem = $param{Elem}) {
-        my $doc = XML::LibXML::Document->createDocument('1.0', 'utf-8');
-        $elem = $doc->createElementNS(NS, 'author'); ## xxx
-        $doc->setDocumentElement($elem);
+        if (LIBXML) {
+            my $doc = XML::LibXML::Document->createDocument('1.0', 'utf-8');
+            $elem = $doc->createElementNS(NS, 'author'); ## xxx
+            $doc->setDocumentElement($elem);
+        } else {
+            $elem = XML::XPath::Node::Element->new('author'); ## xxx
+            my $ns = XML::XPath::Node::Namespace->new('#default' => NS);
+            $elem->appendNamespace($ns);
+        }
     }
     $person->{elem} = $elem;
     $person;
@@ -35,7 +41,7 @@ sub get {
     my $person = shift;
     my($name) = @_;
     my $node = first($person->elem, NS, $name) or return;
-    my $val = $node->textContent;
+    my $val = LIBXML ? $node->textContent : $node->string_value;
     if ($] >= 5.008) {
         require Encode;
         Encode::_utf8_off($val);
@@ -48,20 +54,36 @@ sub set {
     my($name, $val) = @_;
     my $elem;
     unless ($elem = first($person->elem, NS, $name)) {
-        $elem = XML::LibXML::Element->new($name);
-        $elem->setNamespace(NS);
+        if (LIBXML) {
+            $elem = XML::LibXML::Element->new($name);
+            $elem->setNamespace(NS);
+        } else {
+            $elem = XML::XPath::Node::Element->new($name);
+            my $ns = XML::XPath::Node::Namespace->new('#default' => NS);
+            $elem->appendNamespace($ns);
+        }
         $person->elem->appendChild($elem);
     }
-    $elem->removeChildNodes;
-    $elem->appendChild(XML::LibXML::Text->new($val));
+    if (LIBXML) {
+        $elem->removeChildNodes;
+        $elem->appendChild(XML::LibXML::Text->new($val));
+    } else {
+        $elem->removeChild($_) for $elem->getChildNodes;
+        $elem->appendChild(XML::XPath::Node::Text->new($val));
+    }
     $val;
 }
 
 sub as_xml {
-    my $author = shift;
-    my $doc = XML::LibXML::Document->new('1.0', 'utf-8');
-    $doc->setDocumentElement($_[0]->{doc});
-    $doc->toString(1);
+    my $person = shift;
+    if (LIBXML) {
+        my $doc = XML::LibXML::Document->new('1.0', 'utf-8');
+        $doc->setDocumentElement($person->elem);
+        return $doc->toString(1);
+    } else {
+        return '<?xml version="1.0" encoding="utf-8"?>' . "\n" .
+            $person->elem->toString;
+    }
 }
 
 sub DESTROY { }

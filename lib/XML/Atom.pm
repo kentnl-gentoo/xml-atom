@@ -1,12 +1,32 @@
-# $Id: Atom.pm,v 1.12 2004/04/24 10:09:12 btrott Exp $
+# $Id: Atom.pm,v 1.14 2004/05/08 14:44:16 btrott Exp $
 
 package XML::Atom;
 use strict;
 
-use base qw( XML::Atom::ErrorHandler );
+BEGIN {
+    @XML::Atom::EXPORT = qw( LIBXML );
+    if (eval { require XML::LibXML }) {
+        *{XML::Atom::LIBXML} = sub() {1};
+    } else {
+        require XML::XPath;
+        *{XML::Atom::LIBXML} = sub() {0};
+    }
+    local $^W = 0;
+    *XML::XPath::Function::namespace_uri = sub {
+        my $self = shift;
+        my($node, @params) = @_;
+        my $ns = $node->getNamespace($node->getPrefix);
+        if (!$ns) {
+            $ns = ($node->getNamespaces)[0];
+        }
+        XML::XPath::Literal->new($ns ? $ns->getExpanded : '');
+    };
+}
+
+use base qw( XML::Atom::ErrorHandler Exporter );
 
 use vars qw( $VERSION );
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 package XML::Atom::Namespace;
 use strict;

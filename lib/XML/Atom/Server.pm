@@ -1,8 +1,9 @@
-# $Id: Server.pm,v 1.3 2004/04/24 10:09:12 btrott Exp $
+# $Id: Server.pm,v 1.5 2004/05/08 13:20:58 btrott Exp $
 
 package XML::Atom::Server;
 use strict;
 
+use XML::Atom;
 use base qw( XML::Atom::ErrorHandler );
 use MIME::Base64 qw( encode_base64 decode_base64 );
 use Digest::SHA1 qw( sha1 );
@@ -262,12 +263,12 @@ sub authenticate {
         return $server->auth_failure(400, "X-WSSE requires $f")
             unless $auth->{$f};
     }
-    my $password = $server->password_for_user($auth->{Username})
-        or return $server->auth_failure(403, 'Invalid login');
+    my $password = $server->password_for_user($auth->{Username});
+    defined($password) or return $server->auth_failure(403, 'Invalid login');
     my $expected = encode_base64(sha1(
            decode_base64($auth->{Nonce}) . $auth->{Created} . $password
     ), '');
-    return $server->auth_failure(403, 'X-WSSE PasswordDigest is incorrect')
+    return $server->auth_failure(403, 'Invalid login')
         unless $expected eq $auth->{PasswordDigest};
     return 1;
 }
@@ -390,7 +391,8 @@ feeds should override the I<password_for_user> method. Given a username
 (from the WSSE header), I<password_for_user> should return that user's
 password in plaintext. This will then be combined with the nonce and the
 creation time to generate the digest, which will be compared with the
-digest sent in the WSSE header.
+digest sent in the WSSE header. If the supplied username doesn't exist in
+your user database or alike, just return C<undef>.
 
 For example:
 

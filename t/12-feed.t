@@ -1,4 +1,4 @@
-# $Id: 12-feed.t,v 1.6 2004/04/24 10:09:12 btrott Exp $
+# $Id: 12-feed.t,v 1.7 2004/05/08 13:20:58 btrott Exp $
 
 use strict;
 

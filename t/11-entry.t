@@ -1,4 +1,4 @@
-# $Id: 11-entry.t,v 1.9 2003/12/30 06:58:18 btrott Exp $
+# $Id: 11-entry.t,v 1.10 2004/05/08 13:20:58 btrott Exp $
 
 use strict;
 
@@ -7,9 +7,13 @@ use XML::Atom;
 use XML::Atom::Entry;
 use XML::Atom::Person;
 
-BEGIN { plan tests => 57 }
+BEGIN { plan tests => 60 }
 
 my $entry;
+
+$entry = XML::Atom::Entry->new;
+$entry->title('Foo Bar');
+ok($entry->title, 'Foo Bar');
 
 $entry = XML::Atom::Entry->new('t/samples/entry-ns.xml');
 ok($entry);
@@ -17,7 +21,10 @@ ok($entry->title, 'Unit Test 1');
 
 $entry = XML::Atom::Entry->new(Stream => 't/samples/entry-ns.xml');
 ok($entry->title, 'Unit Test 1');
-ok($entry->content->body, '<img src="foo.gif" align="left"/> This is what you get when you do unit testing.');
+my $body = $entry->content->body;
+ok($body);
+ok($body =~ m!^<img src="foo.gif" align="left"!);
+ok($body =~ /This is what you get when you do unit testing\./);
 
 $entry = XML::Atom::Entry->new(Stream => 't/samples/entry-full.xml');
 ok($entry->title, 'Guest Author');

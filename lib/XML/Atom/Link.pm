@@ -1,10 +1,10 @@
-# $Id: Link.pm,v 1.2 2004/04/24 10:09:12 btrott Exp $
+# $Id: Link.pm,v 1.4 2004/05/08 18:33:46 btrott Exp $
 
 package XML::Atom::Link;
 use strict;
 
+use XML::Atom;
 use base qw( XML::Atom::ErrorHandler );
-use XML::LibXML;
 
 use constant NS => 'http://purl.org/atom/ns#';
 
@@ -20,9 +20,15 @@ sub init {
     my %param = @_ == 1 ? (Body => $_[0]) : @_;
     my $elem;
     unless ($elem = $param{Elem}) {
-        my $doc = XML::LibXML::Document->createDocument('1.0', 'utf-8');
-        $elem = $doc->createElementNS(NS, 'link');
-        $doc->setDocumentElement($elem);
+        if (LIBXML) {
+            my $doc = XML::LibXML::Document->createDocument('1.0', 'utf-8');
+            $elem = $doc->createElementNS(NS, 'link');
+            $doc->setDocumentElement($elem);
+        } else {
+            $elem = XML::XPath::Node::Element->new('link');
+            my $ns = XML::XPath::Node::Namespace->new('#default' => NS);
+            $elem->appendNamespace($ns);
+        }
     }
     $link->{elem} = $elem;
     $link;
@@ -49,9 +55,14 @@ sub set {
 
 sub as_xml {
     my $link = shift;
-    my $doc = XML::LibXML::Document->new('1.0', 'utf-8');
-    $doc->setDocumentElement($link->elem);
-    $doc->toString(1);
+    if (LIBXML) {
+        my $doc = XML::LibXML::Document->new('1.0', 'utf-8');
+        $doc->setDocumentElement($link->elem);
+        return $doc->toString(1);
+    } else {
+        return '<?xml version="1.0" encoding="utf-8"?>' . "\n" .
+            $link->elem->toString;
+    }
 }
 
 sub DESTROY { }
