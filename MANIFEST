@@ -9,9 +9,10 @@ lib/XML/Atom/Entry.pm
 lib/XML/Atom/ErrorHandler.pm
 lib/XML/Atom/Feed.pm
 lib/XML/Atom/Thing.pm
+lib/XML/Atom/Util.pm
 t/00-compile.t
-t/01-entry.t
-t/02-feed.t
-t/03-client.t
+t/01-util.t
+t/02-entry.t
+t/03-feed.t
 t/samples/entry-full.xml
 t/samples/feed.xml

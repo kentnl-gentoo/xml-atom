@@ -1,10 +1,12 @@
-# $Id: Entry.pm,v 1.2 2003/09/08 03:38:49 btrott Exp $
+# $Id: Entry.pm,v 1.3 2003/09/08 07:25:58 btrott Exp $
 
 package XML::Atom::Entry;
 use strict;
 
 use base qw( XML::Atom::Thing );
 use MIME::Base64 qw( encode_base64 decode_base64 );
+
+use constant NS => 'http://purl.org/atom/ns#';
 
 sub element_name { 'entry' }
 
@@ -13,7 +15,7 @@ sub content {
     if (@_) {
         my $content = shift;
         if ($content =~ /[^\x09\x0a\x0d\x20-\x7f]/) {
-            $atom->set('content', encode_base64($content), { mode => 'base64' });
+            $atom->set(NS, 'content', encode_base64($content), { mode => 'base64' });
         } else {
             $content = '<div xmlns="http://www.w3.org/1999/xhtml">' .
                        $content .
@@ -25,14 +27,14 @@ sub content {
                 $node = $tree->getDocumentElement;
             };
             if (!$@ && $node) {
-                $atom->set('content', $node, { mode => 'xml' });
+                $atom->set(NS, 'content', $node, { mode => 'xml' });
             } else {
-                $atom->set('content', $content, { mode => 'escaped' });
+                $atom->set(NS, 'content', $content, { mode => 'escaped' });
             }
         }
     } else {
         unless (exists $atom->{__content}) {
-            my $content = $atom->_first($atom->{doc}, 'content') or return;
+            my $content = $atom->_first($atom->{doc}, NS, 'content') or return;
             my $mode = $content->getAttribute('mode') || 'xml';
             if ($mode eq 'xml') {
                 my @children = grep ref($_) =~ /Element$/, $content->childNodes;
@@ -68,6 +70,8 @@ XML::Atom::Entry - Atom entry
     $entry->title('My Post');
     $entry->content('The content of my post.');
     my $xml = $entry->as_xml;
+    my $dc = XML::Atom::Namespace->new(dc => 'http://purl.org/dc/elements/1.1/');
+    $entry->set($dc->subject, 'Food & Drink');
 
 =head1 AUTHOR & COPYRIGHT
 

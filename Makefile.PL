@@ -1,11 +1,11 @@
-# $Id: Makefile.PL,v 1.2 2003/09/08 00:54:08 btrott Exp $
+# $Id: Makefile.PL,v 1.4 2003/09/08 07:33:37 btrott Exp $
 
 use ExtUtils::MakeMaker;
 use strict;
 
 use ExtUtils::AutoInstall (
     -core => [
-        'XML::LibXML' => 0,
+        'XML::LibXML' => 1.54,
         'MIME::Base64' => 0,
     ],
 
@@ -18,6 +18,11 @@ use ExtUtils::AutoInstall (
     'Auto-discovery' => [
         -default => 1,
         'HTML::Parser' => 0,
+    ],
+
+    'Namespace Normalization' => [
+        -default => 0,
+        'XML::LibXSLT' => 0,
     ],
 );
 

@@ -2,4 +2,5 @@
 * Support for multipart content entries.
 * Fuller test suite.
 * Author name/URL/email access methods.
-* Namespace normalization?
+xx * Namespace normalization?
+xx * Namespace support.

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-  <entry xmlns="http://purl.org/atom/ns#">
+  <entry xmlns="http://purl.org/atom/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <title>Guest Author</title>
     <link>http://www.thetrott.com/typepad/2003/07/guest_author.html</link>
     <id>tag:typepad.com:post:75207</id>
@@ -11,6 +11,7 @@
       <name>Mena</name>
       <url>http://www.thetrott.com/typepad/</url>
     </author>
+    <dc:subject>Food</dc:subject>
     <content type="text/html" xml:lang="en-us">
 <div xmlns="http://www.w3.org/1999/xhtml"><p>No, Ben isn't updating. It's me testing out guest author functionality.</p></div>
 </content>

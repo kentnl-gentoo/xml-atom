@@ -1,4 +1,4 @@
-# $Id: Thing.pm,v 1.3 2003/09/08 03:11:17 btrott Exp $
+# $Id: Thing.pm,v 1.4 2003/09/08 07:25:58 btrott Exp $
 
 package XML::Atom::Thing;
 use strict;
@@ -80,13 +80,15 @@ sub find_atom {
 }
 
 sub _first {
-    my @res = $_[1]->getElementsByTagNameNS(NS, $_[2]) or return;
+    my @res = $_[1]->getElementsByTagNameNS($_[2], $_[3]) or return;
     $res[0];
 }
 
 sub get {
     my $atom = shift;
-    my $node = $atom->_first($atom->{doc}, $_[0]);
+    my($ns, $name) = @_;
+    my $ns_uri = ref($ns) eq 'XML::Atom::Namespace' ? $ns->{uri} : $ns;
+    my $node = $atom->_first($atom->{doc}, $ns_uri, $name);
     my $val = $node ? $node->textContent : '';
     if ($] >= 5.008) {
         require Encode;
@@ -97,11 +99,15 @@ sub get {
 
 sub set {
     my $atom = shift;
-    my($var, $val, $attr) = @_;
+    my($ns, $name, $val, $attr) = @_;
     my $elem;
-    unless ($elem = $atom->_first($atom->{doc}, $var)) {
-        $elem = $atom->{doc}->createElementNS(NS, $var);
+    my $ns_uri = ref($ns) eq 'XML::Atom::Namespace' ? $ns->{uri} : $ns;
+    unless ($elem = $atom->_first($atom->{doc}, $ns_uri, $name)) {
+        $elem = $atom->{doc}->createElementNS($ns_uri, $name);
         $atom->{doc}->getDocumentElement->appendChild($elem);
+    }
+    if ($ns ne NS) {
+        $atom->{doc}->getDocumentElement->setNamespace($ns->{uri}, $ns->{prefix}, 0);
     }
     if (ref($val) =~ /Element$/) {
         $elem->appendChild($val);
@@ -119,23 +125,26 @@ sub set {
 }
 
 sub as_xml {
-    $_[0]->{doc}->toString(1)
-}
-
-sub as_xml_clean {
-    my $xml = $_[0]->{doc}->toString(1);
-    my $parser = XML::LibXML->new;
-    my $xslt = XML::LibXSLT->new;
-    my $doc = $parser->parse_string(<<'EOX');
-<xsl:template match="@*|node()">
-  <xsl:copy>
-    <xsl:apply-templates select="@*|node()"/>
-  </xsl:copy>
-</xsl:template>
+    my $doc = $_[0]->{doc};
+    if (eval { require XML::LibXSLT }) {
+        my $parser = XML::LibXML->new;
+        my $xslt = XML::LibXSLT->new;
+        my $style_doc = $parser->parse_string(<<'EOX');
+<?xml version="1.0"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="@*|node()">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+  </xsl:template>
+</xsl:stylesheet> 
 EOX
-    my $sheet = $xslt->parse_stylesheet($doc);
-    my $results = $sheet->transform($xml);
-    $sheet->output_string($results);
+        my $sheet = $xslt->parse_stylesheet($style_doc);
+        my $results = $sheet->transform($doc);
+        return $sheet->output_string($results);
+    } else {
+        return $doc->toString(1);
+    }
 }
 
 sub DESTROY { }
@@ -145,7 +154,7 @@ sub AUTOLOAD {
     (my $var = $AUTOLOAD) =~ s!.+::!!;
     no strict 'refs';
     *$AUTOLOAD = sub {
-        @_ > 1 ? $_[0]->set($var, @_[1..$#_]) : $_[0]->get($var)
+        @_ > 1 ? $_[0]->set(NS, $var, @_[1..$#_]) : $_[0]->get(NS, $var)
     };
     goto &$AUTOLOAD;
 }
