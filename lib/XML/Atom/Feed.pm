@@ -1,4 +1,4 @@
-# $Id: Feed.pm,v 1.7 2004/05/30 08:12:06 btrott Exp $
+# $Id: Feed.pm 911 2004-09-06 12:28:12Z btrott $
 
 package XML::Atom::Feed;
 use strict;
@@ -72,8 +72,28 @@ sub element_name { 'feed' }
 
 sub language {
     my $feed = shift;
-    LIBXML ? $feed->{doc}->getDocumentElement->getAttribute('lang') :
-             $feed->{doc}->getAttribute('xml:lang');
+    if (LIBXML) {
+        my $elem = $feed->{doc}->getDocumentElement;
+        if (@_) {
+            $elem->setAttributeNS('http://www.w3.org/XML/1998/namespace',
+                'lang', $_[0]);
+        }
+        return $elem->getAttribute('lang');
+    } else {
+        if (@_) {
+            $feed->{doc}->setAttribute('xml:lang', $_[0]);
+        }
+        return $feed->{doc}->getAttribute('xml:lang');
+    }
+}
+
+sub version {
+    my $feed = shift;
+    my $elem = LIBXML ? $feed->{doc}->getDocumentElement : $feed->{doc};
+    if (@_) {
+        $elem->setAttribute('version', $_[0]);
+    }
+    $elem->getAttribute('version');
 }
 
 sub entries_libxml {

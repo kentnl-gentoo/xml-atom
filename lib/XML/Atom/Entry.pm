@@ -1,4 +1,4 @@
-# $Id: Entry.pm,v 1.14 2004/05/30 08:12:06 btrott Exp $
+# $Id: Entry.pm 901 2004-05-30 08:12:06Z btrott $
 
 package XML::Atom::Entry;
 use strict;

@@ -1,4 +1,4 @@
-# $Id: Link.pm,v 1.4 2004/05/08 18:33:46 btrott Exp $
+# $Id: Link.pm 896 2004-05-08 18:33:46Z btrott $
 
 package XML::Atom::Link;
 use strict;

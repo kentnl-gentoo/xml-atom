@@ -1,4 +1,4 @@
-# $Id: Client.pm,v 1.23 2004/07/29 16:51:25 btrott Exp $
+# $Id: Client.pm 907 2004-07-29 16:51:25Z btrott $
 
 package XML::Atom::Client;
 use strict;

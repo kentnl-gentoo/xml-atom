@@ -1,6 +1,15 @@
-$Id: Changes,v 1.25 2004/07/29 16:51:25 btrott Exp $
+$Id: Changes 1743 2005-01-01 00:06:50Z btrott $
 
 Revision history for XML::Atom
+
+0.10  2004.12.31
+    - Eliminated unitialized value warning on <link /> attributes that
+      aren't set.
+    - Added XML::Atom::Feed->version to get and set the version of the feed.
+    - XML::Atom::Feed->language can now be used to set the language of
+      the feed.
+    - Added support for using XML::XPath in XML::Atom::Server. Thanks to
+      Autrijus Tang for the patch.
 
 0.09  2004.07.29
     - Fixed "500 Malformed characters in syswrite" bug with utf-8. Thanks to

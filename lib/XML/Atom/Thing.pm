@@ -1,4 +1,4 @@
-# $Id: Thing.pm,v 1.13 2004/05/30 08:12:06 btrott Exp $
+# $Id: Thing.pm 912 2004-12-31 22:54:46Z btrott $
 
 package XML::Atom::Thing;
 use strict;
@@ -179,11 +179,13 @@ sub add_link {
     }
     if (ref($link) eq 'XML::Atom::Link') {
         for my $k (qw( type rel href title )) {
-            $elem->setAttribute($k, $link->$k());
+            my $v = $link->$k() or next;
+            $elem->setAttribute($k, $v);
         }
     } elsif (ref($link) eq 'HASH') {
         for my $k (qw( type rel href title )) {
-            $elem->setAttribute($k, $link->{$k});
+            my $v = $link->{$k} or next;
+            $elem->setAttribute($k, $v);
         }
     }
 }

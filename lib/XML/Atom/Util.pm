@@ -1,4 +1,4 @@
-# $Id: Util.pm,v 1.4 2004/05/08 13:20:58 btrott Exp $
+# $Id: Util.pm 893 2004-05-08 13:20:58Z btrott $
 
 package XML::Atom::Util;
 use strict;

@@ -1,4 +1,4 @@
-# $Id: 11-entry.t,v 1.10 2004/05/08 13:20:58 btrott Exp $
+# $Id: 11-entry.t 893 2004-05-08 13:20:58Z btrott $
 
 use strict;
 

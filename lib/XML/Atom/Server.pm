@@ -1,4 +1,4 @@
-# $Id: Server.pm,v 1.6 2004/07/29 16:48:18 btrott Exp $
+# $Id: Server.pm 910 2004-09-06 12:02:56Z btrott $
 
 package XML::Atom::Server;
 use strict;
@@ -7,7 +7,7 @@ use XML::Atom;
 use base qw( XML::Atom::ErrorHandler );
 use MIME::Base64 qw( encode_base64 decode_base64 );
 use Digest::SHA1 qw( sha1 );
-use XML::Atom::Util qw( first encode_xml );
+use XML::Atom::Util qw( first encode_xml textValue );
 use XML::Atom::Entry;
 
 use constant NS_SOAP => 'http://schemas.xmlsoap.org/soap/envelope/';
@@ -282,8 +282,14 @@ sub auth_failure {
 sub xml_body {
     my $server = shift;
     unless (exists $server->{xml_body}) {
-        my $parser = XML::LibXML->new;
-        $server->{xml_body} = $parser->parse_string($server->request_content);
+        if (LIBXML) {
+            my $parser = XML::LibXML->new;
+            $server->{xml_body} =
+                $parser->parse_string($server->request_content);
+        } else {
+            $server->{xml_body} =
+                XML::XPath->new(xml => $server->request_content);
+        }
     }
     $server->{xml_body};
 }

@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.8 2004/06/01 16:56:28 btrott Exp $
+# $Id: Makefile.PL 904 2004-06-01 16:56:28Z btrott $
 
 use inc::Module::Install;
 
