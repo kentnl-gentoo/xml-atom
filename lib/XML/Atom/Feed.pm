@@ -1,4 +1,4 @@
-# $Id: Feed.pm,v 1.3 2003/12/05 10:23:01 btrott Exp $
+# $Id: Feed.pm,v 1.4 2003/12/15 18:11:59 btrott Exp $
 
 package XML::Atom::Feed;
 use strict;
@@ -15,7 +15,7 @@ sub entries {
     my @res = $feed->{doc}->getElementsByTagNameNS(NS, 'entry') or return;
     my @entries;
     for my $res (@res) {
-        my $entry = XML::Atom::Entry->new(Doc => $res);
+        my $entry = XML::Atom::Entry->new(Elem => $res->cloneNode(1));
         push @entries, $entry;
     }
     @entries;

@@ -1,6 +1,10 @@
-$Id: Changes,v 1.9 2003/12/13 08:56:35 btrott Exp $
+$Id: Changes,v 1.10 2003/12/15 18:11:59 btrott Exp $
 
 Revision history for XML::Atom
+
+0.041 2003.12.15
+    - Fixed issue with calling $entry->content on list of entries generated
+      from $feed->entries. (Thanks to esummers for the report.)
 
 0.04  2003.12.14
     - BACKWARDS INCOMPABILITY:

@@ -1,4 +1,4 @@
-# $Id: Atom.pm,v 1.5 2003/12/13 08:32:05 btrott Exp $
+# $Id: Atom.pm,v 1.6 2003/12/15 18:11:59 btrott Exp $
 
 package XML::Atom;
 use strict;
@@ -6,7 +6,7 @@ use strict;
 use base qw( XML::Atom::ErrorHandler );
 
 use vars qw( $VERSION );
-$VERSION = '0.04';
+$VERSION = '0.041';
 
 ## Methods to:
 ##     - set defaults (encoding, language?)
