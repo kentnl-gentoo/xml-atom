@@ -1,4 +1,4 @@
-# $Id: Feed.pm,v 1.2 2003/09/08 03:38:49 btrott Exp $
+# $Id: Feed.pm,v 1.3 2003/12/05 10:23:01 btrott Exp $
 
 package XML::Atom::Feed;
 use strict;
@@ -46,6 +46,9 @@ XML::Atom::Feed - Atom feed
     $feed->add_entry($entry);
     my @entries = $feed->entries;
     my $xml = $feed->as_xml;
+
+    ## Get a list of the <link rel="..." /> tags in the feed.
+    my $links = $feed->get_links;
 
 =head1 AUTHOR & COPYRIGHT
 

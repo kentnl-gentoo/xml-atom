@@ -1,14 +1,30 @@
-# $Id: Entry.pm,v 1.3 2003/09/08 07:25:58 btrott Exp $
+# $Id: Entry.pm,v 1.4 2003/09/29 04:19:25 btrott Exp $
 
 package XML::Atom::Entry;
 use strict;
 
 use base qw( XML::Atom::Thing );
 use MIME::Base64 qw( encode_base64 decode_base64 );
+use XML::Atom::Author;
 
 use constant NS => 'http://purl.org/atom/ns#';
 
 sub element_name { 'entry' }
+
+sub author {
+    my $entry = shift;
+    if (@_) {
+        my $author = shift;
+        $entry->{doc}->getDocumentElement->appendChild($author->{doc}->getDocumentElement->cloneNode(1));
+        $entry->{__author} = $author;
+    } else {
+        unless (exists $entry->{__author}) {
+            my $author = $entry->_first($entry->{doc}, NS, 'author') or return;
+            $entry->{__author} = XML::Atom::Author->new(Doc => $author);
+        }
+    }
+    $entry->{__author};
+}
 
 sub content {
     my $atom = shift;
@@ -72,6 +88,30 @@ XML::Atom::Entry - Atom entry
     my $xml = $entry->as_xml;
     my $dc = XML::Atom::Namespace->new(dc => 'http://purl.org/dc/elements/1.1/');
     $entry->set($dc->subject, 'Food & Drink');
+
+=head1 USAGE
+
+=head2 XML::Atom::Entry->new
+
+Creates and returns a new entry object.
+
+=head2 $entry->content([ $content ])
+
+Returns the content of the entry. If I<$content> is given, sets the content
+of the entry. Automatically handles all necessary escaping.
+
+=head2 $entry->author([ $author ])
+
+Returns an I<XML::Atom::Author> object representing the author of the entry,
+or C<undef> if there is no author information present.
+
+If I<$author> is supplied, it should be an I<XML::Atom::Author> object
+representing the author. For example:
+
+    my $author = XML::Atom::Author->new;
+    $author->name('Foo Bar');
+    $author->email('foo@bar.com');
+    $entry->author($author);
 
 =head1 AUTHOR & COPYRIGHT
 

@@ -5,6 +5,7 @@ README
 ToDo
 lib/XML/Atom.pm
 lib/XML/Atom/API.pm
+lib/XML/Atom/Author.pm
 lib/XML/Atom/Entry.pm
 lib/XML/Atom/ErrorHandler.pm
 lib/XML/Atom/Feed.pm

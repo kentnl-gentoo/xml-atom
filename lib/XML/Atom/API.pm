@@ -1,4 +1,4 @@
-# $Id: API.pm,v 1.8 2003/09/28 06:10:18 btrott Exp $
+# $Id: API.pm,v 1.11 2003/12/05 10:03:56 btrott Exp $
 
 package XML::Atom::API;
 use strict;
@@ -7,6 +7,7 @@ use base qw( XML::Atom::ErrorHandler );
 use LWP::UserAgent;
 use XML::Atom;
 use XML::Atom::Entry;
+use XML::Atom::Feed;
 use XML::Atom::Util qw( first textValue );
 use XML::LibXML;
 use Digest::SHA1 qw( sha1_hex );
@@ -28,9 +29,6 @@ sub init {
     my %param = @_;
     $client->{ua} = LWP::UserAgent->new;
     $client->{ua}->agent('XML::Atom/' . XML::Atom->VERSION);
-    if (my $uri = $param{IntrospectionURI}) {
-        $client->introspect($uri) or return;
-    }
     $client;
 }
 
@@ -58,24 +56,6 @@ sub auth_digest {
     $client->{auth_digest};
 }
 
-sub introspect {
-    my $client = shift;
-    my($uri) = @_;
-    my $req = HTTP::Request->new(GET => $uri);
-    my $res = $client->{ua}->request($req);
-    return $client->error("$uri returned " . $res->status_line)
-        unless $res->is_success;
-    my $parser = XML::LibXML->new;
-    my $doc = $parser->parse_string($res->content);
-    my @el = $doc->getElementsByTagNameNS(NS_ATOM, 'introspection')
-        or return $client->error("Invalid introspection file");
-    for my $child ($el[0]->childNodes) {
-        next unless ref($child) eq 'XML::LibXML::Element';
-        $client->{uri}{$child->nodeName} = $child->textContent;
-    }
-    1;
-}
-
 sub getEntry {
     my $client = shift;
     my($url) = @_;
@@ -88,16 +68,16 @@ sub getEntry {
 
 sub createEntry {
     my $client = shift;
-    my($entry) = @_;
-    my $url = $client->{uri}{'create-entry'}
-        or return $client->error("Must set create-entry before posting");
-    my $req = HTTP::Request->new(POST => $url);
+    my($uri, $entry) = @_;
+    return $client->error("Must pass a PostURI before posting")
+        unless $uri;
+    my $req = HTTP::Request->new(POST => $uri);
     $req->content_type('application/x.atom+xml');
     my $xml = $entry->as_xml;
     $req->content_length(length $xml);
     $req->content($xml);
     my $res = $client->make_request($req);
-    return $client->error("Error on POST $url: " . $res->status_line)
+    return $client->error("Error on POST $uri: " . $res->status_line)
         unless $res->code == 201;
     $res->header('Location');
 }
@@ -126,30 +106,18 @@ sub deleteEntry {
     1;
 }
 
-sub searchEntries {
+sub getFeed {
     my $client = shift;
-    my $url = $client->{uri}{'search-entries'}
-        or return $client->error("Must set search-entries before searching");
-    $url .= '?atom-start-range=0&atom-end-range=20';
-    my $req = HTTP::Request->new(GET => $url);
+    my($uri) = @_;
+    return $client->error("Must pass a FeedURI before retrieving feed")
+        unless $uri;
+    my $req = HTTP::Request->new(GET => $uri);
     my $res = $client->make_request($req);
-    return $client->error("Error on GET $url: " . $res->status_line)
+    return $client->error("Error on GET $uri: " . $res->status_line)
         unless $res->code == 200;
-    my $parser = XML::LibXML->new;
-    my $doc = $parser->parse_string($res->content);
-    my @el = $doc->getElementsByTagNameNS(NS_ATOM, 'search-results')
-        or return $client->error("Invalid introspection file");
-    my @res;
-    for my $child ($el[0]->childNodes) {
-        next unless ref($child) eq 'XML::LibXML::Element';
-        my $res;
-        for my $col (qw( id title )) {
-            my @val = $child->getElementsByTagNameNS(NS_ATOM, $col);
-            $res->{$col} = $val[0]->textContent;
-        }
-        push @res, $res;
-    }
-    \@res;
+    my $feed = XML::Atom::Feed->new(Stream => \$res->content)
+        or return $client->error(XML::Atom::Feed->errstr);
+    $feed;
 }
 
 sub make_request {
@@ -166,7 +134,7 @@ sub munge_request {
     my($req) = @_;
     my $nonce = $client->make_nonce;
     my $now = DateTime->now->iso8601 . 'Z';
-    my $digest = encode_base64(sha1_hex($nonce . $now . $client->password), '');
+    my $digest = encode_base64(sha1_hex($nonce . $now . ($client->password || '')), '');
     if ($client->use_soap) {
         my $xml = $req->content || '';
         $xml =~ s!^(<\?xml.*?\?>)!!;
@@ -179,7 +147,7 @@ sub munge_request {
   <soap:Header>
     <wsse:Security>
       <wsse:UsernameToken>
-        <wsse:Username>@{[ $client->username ]}</wsse:Username>
+        <wsse:Username>@{[ $client->username || '' ]}</wsse:Username>
         <wsse:Password Type="wsse:PasswordDigest">$digest</wsse:Password>
         <wsse:Nonce>$nonce</wsse:Nonce>
         <wsu:Created>$now</wsu:Created>
@@ -201,7 +169,7 @@ SOAP
     } else {
         $req->header('X-WSSE', sprintf
           qq(WSSE Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
-          $client->username, $digest, $nonce, $now);
+          $client->username || '', $digest, $nonce, $now);
     }
 }
 
@@ -291,8 +259,6 @@ If called with an argument, sets the password for login to I<$password>.
 Returns the current password that will be used when logging in to the
 Atom server.
 
-=head2 $api->introspect($url)
-
 =head2 $api->createEntry($entry)
 
 Creates a new entry.
@@ -316,13 +282,12 @@ Returns true on success, false otherwise.
 
 Deletes the entry at URL I<$url>.
 
-=head2 $api->searchEntries
+=head2 $api->getFeed
 
 Retrieves a list of entries.
 
-Returns a reference to an array of hash references, each with two keys:
-I<id>, the URL for editing/retrieving the entry; and I<title>, the
-title of the entry.
+Returns an I<XML::Atom::Feed> object representing the feed returned
+from the server.
 
 =head2 ERROR HANDLING
 

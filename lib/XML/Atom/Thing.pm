@@ -1,4 +1,4 @@
-# $Id: Thing.pm,v 1.4 2003/09/08 07:25:58 btrott Exp $
+# $Id: Thing.pm,v 1.6 2003/12/05 10:23:01 btrott Exp $
 
 package XML::Atom::Thing;
 use strict;
@@ -89,7 +89,8 @@ sub get {
     my($ns, $name) = @_;
     my $ns_uri = ref($ns) eq 'XML::Atom::Namespace' ? $ns->{uri} : $ns;
     my $node = $atom->_first($atom->{doc}, $ns_uri, $name);
-    my $val = $node ? $node->textContent : '';
+    return unless $node;
+    my $val = $node->textContent;
     if ($] >= 5.008) {
         require Encode;
         Encode::_utf8_off($val);
@@ -111,7 +112,7 @@ sub set {
     }
     if (ref($val) =~ /Element$/) {
         $elem->appendChild($val);
-    } else {
+    } elsif (defined $val) {
         $elem->removeChildNodes;
         my $text = XML::LibXML::Text->new($val);
         $elem->appendChild($text);
@@ -122,6 +123,32 @@ sub set {
         }
     }
     $val;
+}
+
+sub add_link {
+    my $thing = shift;
+    my($attr) = @_;
+    my $elem = $thing->{doc}->createElementNS(NS, 'link');
+    $thing->{doc}->getDocumentElement->appendChild($elem);
+    while (my($k, $v) = each %$attr) {
+        $elem->setAttribute($k, $v);
+    }
+}
+
+sub get_links {
+    my $thing = shift;
+    my @res = $thing->{doc}->getElementsByTagNameNS(NS, 'link');
+    my @links;
+    for my $node (@res) {
+        next unless $node->getAttribute('rel');
+        push @links, {
+            rel => $node->getAttribute('rel'),
+            type => $node->getAttribute('type'),
+            title => $node->getAttribute('title'),
+            href => $node->getAttribute('href'),
+        };
+    }
+    \@links;
 }
 
 sub as_xml {

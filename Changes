@@ -1,6 +1,20 @@
-$Id: Changes,v 1.3 2003/09/28 21:00:19 btrott Exp $
+$Id: Changes,v 1.6 2003/12/05 10:23:00 btrott Exp $
 
 Revision history for XML::Atom
+
+0.03  2003.12.05
+    - Added XML::Atom::Author to represent author or contributor, with
+      accessors for name, email, URL, etc.
+    - Updated XML::Atom::API per the 08 API spec:
+          * Removed searchEntries and replaced it with getFeed
+          * Removed introspection and replaced it with URI parameters
+            to createEntry and getFeed (introspection will be added
+            back in once it is more locked down)
+    - Added support for easily adding <link> tags to feed or entry
+      (eg XML::Atom::Feed::add_link) and getting <link> tags from feed or
+      entry (eg XML::Atom::Feed::get_links).
+    - Fixed XML::Atom::Thing::get to return undef when an element is
+      not found in the object at all (it used to return the empty string).
 
 0.02  2003.09.28
     - Completely revamped authentication mechanism to use X-WSSE header
