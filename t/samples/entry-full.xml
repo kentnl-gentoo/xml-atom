@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <entry xmlns="http://purl.org/atom/ns#">
+    <title>Guest Author</title>
+    <link>http://www.thetrott.com/typepad/2003/07/guest_author.html</link>
+    <id>tag:typepad.com:post:75207</id>
+    <issued>2003-07-21T02:47:34-07:00</issued>
+    <modified>2003-08-22T18:36:57-07:00</modified>
+    <created>2003-07-21T02:47:34-07:00</created>
+    <summary>No, Ben isn&apos;t updating. It&apos;s me testing out guest author functionality....</summary>
+    <author>
+      <name>Mena</name>
+      <url>http://www.thetrott.com/typepad/</url>
+    </author>
+    <content type="text/html" xml:lang="en-us">
+<div xmlns="http://www.w3.org/1999/xhtml"><p>No, Ben isn't updating. It's me testing out guest author functionality.</p></div>
+</content>
+  </entry>
