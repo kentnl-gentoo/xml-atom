@@ -1,4 +1,4 @@
-# $Id: 02-feed.t,v 1.1 2003/09/08 03:11:18 btrott Exp $
+# $Id: 12-feed.t,v 1.2 2003/12/15 03:15:43 btrott Exp $
 
 use strict;
 
@@ -21,7 +21,7 @@ ok(scalar @entries, 15);
 my $entry = $entries[0];
 ok($entry->title, 'Test');
 
-my $entry = XML::Atom::Entry->new;
+$entry = XML::Atom::Entry->new;
 $entry->title('Foo');
 $feed->add_entry($entry);
 

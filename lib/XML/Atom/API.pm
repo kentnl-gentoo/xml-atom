@@ -1,4 +1,4 @@
-# $Id: API.pm,v 1.11 2003/12/05 10:03:56 btrott Exp $
+# $Id: API.pm,v 1.15 2003/12/15 07:42:53 btrott Exp $
 
 package XML::Atom::API;
 use strict;
@@ -139,7 +139,7 @@ sub munge_request {
         my $xml = $req->content || '';
         $xml =~ s!^(<\?xml.*?\?>)!!;
         my $method = $req->method;
-        $xml = $1 . <<SOAP;
+        $xml = ($1 || '') . <<SOAP;
 <soap:Envelope
   xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
   xmlns:wsu="http://schemas.xmlsoap.org/ws/2002/07/utility"
@@ -168,8 +168,9 @@ SOAP
         $req->content_type('text/xml');
     } else {
         $req->header('X-WSSE', sprintf
-          qq(WSSE Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
+          qq(UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
           $client->username || '', $digest, $nonce, $now);
+        $req->header('Authorization', 'WSSE profile="UsernameToken"');
     }
 }
 
@@ -210,14 +211,18 @@ XML::Atom::API - A client for the Atom API
     use XML::Atom::API;
     use XML::Atom::Entry;
     my $api = XML::Atom::API->new;
-    $api->introspect('http://www.my-weblog.com/atom');
     $api->username('Melody');
     $api->password('Nelson');
 
     my $entry = XML::Atom::Entry->new;
     $entry->title('New Post');
     $entry->content('Content of my post.');
-    my $url = $api->createEntry($entry);
+    my $EditURI = $api->createEntry($PostURI, $entry);
+
+    my $feed = $api->getFeed($FeedURI);
+    my @entries = $feed->entries;
+
+    my $entry = $api->getEntry($EditURI);
 
 =head1 DESCRIPTION
 
@@ -259,32 +264,32 @@ If called with an argument, sets the password for login to I<$password>.
 Returns the current password that will be used when logging in to the
 Atom server.
 
-=head2 $api->createEntry($entry)
+=head2 $api->createEntry($PostURI, $entry)
 
 Creates a new entry.
 
 I<$entry> must be an I<XML::Atom::Entry> object.
 
-=head2 $api->getEntry($url)
+=head2 $api->getEntry($EditURI)
 
-Retrieves the entry with the given URL I<$url>.
+Retrieves the entry with the given URL I<$EditURI>.
 
 Returns an I<XML::Atom::Entry> object.
 
-=head2 $api->updateEntry($url, $entry)
+=head2 $api->updateEntry($EditURI, $entry)
 
-Updates the entry at URL I<$url> with the entry I<$entry>, which must be
+Updates the entry at URL I<$EditURI> with the entry I<$entry>, which must be
 an I<XML::Atom::Entry> object.
 
 Returns true on success, false otherwise.
 
-=head2 $api->deleteEntry($url)
+=head2 $api->deleteEntry($EditURI)
 
-Deletes the entry at URL I<$url>.
+Deletes the entry at URL I<$EditURI>.
 
-=head2 $api->getFeed
+=head2 $api->getFeed($FeedURI)
 
-Retrieves a list of entries.
+Retrieves the feed at I<$FeedURI>.
 
 Returns an I<XML::Atom::Feed> object representing the feed returned
 from the server.

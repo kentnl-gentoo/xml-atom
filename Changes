@@ -1,6 +1,19 @@
-$Id: Changes,v 1.6 2003/12/05 10:23:00 btrott Exp $
+$Id: Changes,v 1.9 2003/12/13 08:56:35 btrott Exp $
 
 Revision history for XML::Atom
+
+0.04  2003.12.14
+    - BACKWARDS INCOMPABILITY:
+      <content> elements are now represented as XML::Atom::Content objects
+      instead of just get/set accessors. You can still set
+      XML::Atom::Entry::content with a scalar (it will be automatically
+      upgraded to an XML::Atom::Content object), but to get the value of
+      <content>, you need to call XML::Atom::Content::Body. For example:
+          $entry->content->body
+    - XML::Atom::Entry::content now removes the <div> wrapper from
+      XHTML <content> when called with no arguments.
+    - Changed XML::Atom::Author to XML::Atom::Person and re-implemented it.
+    - Changed "WSSE" to "UsernameToken" in X-WSSE header.
 
 0.03  2003.12.05
     - Added XML::Atom::Author to represent author or contributor, with

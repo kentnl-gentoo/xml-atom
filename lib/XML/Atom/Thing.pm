@@ -1,4 +1,4 @@
-# $Id: Thing.pm,v 1.6 2003/12/05 10:23:01 btrott Exp $
+# $Id: Thing.pm,v 1.8 2003/12/15 07:59:45 btrott Exp $
 
 package XML::Atom::Thing;
 use strict;
@@ -6,8 +6,6 @@ use strict;
 use base qw( XML::Atom::ErrorHandler );
 use XML::LibXML;
 use LWP::UserAgent;
-
-## Need easy access to namespaced data (eg TypePad-specific)
 
 use constant NS => 'http://purl.org/atom/ns#';
 
@@ -37,6 +35,9 @@ sub init {
             }
         } elsif (my $doc = $param{Doc}) {
             $atom->{doc} = $doc;
+        } elsif (my $elem = $param{Elem}) {
+            $atom->{doc} = XML::LibXML::Document->createDocument('1.0', 'utf-8');
+            $atom->{doc}->setDocumentElement($elem);
         }
     } else {
         my $doc = $atom->{doc} = XML::LibXML::Document->createDocument('1.0', 'utf-8');
@@ -59,8 +60,8 @@ sub find_atom {
             my($tag, $attr) = @_;
             $atom_url = $attr->{href}
                 if $tag eq 'link' &&
-                   $attr->{rel} eq 'meta' &&
-                   $attr->{type} eq 'application/x.atom+xml' &&
+                   $attr->{rel} eq 'alternate' &&
+                   $attr->{type} eq 'application/atom+xml' &&
                    $attr->{title} eq 'Atom';
         };
         require HTML::Parser;

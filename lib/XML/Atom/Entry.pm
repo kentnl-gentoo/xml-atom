@@ -1,75 +1,58 @@
-# $Id: Entry.pm,v 1.4 2003/09/29 04:19:25 btrott Exp $
+# $Id: Entry.pm,v 1.10 2003/12/15 00:39:17 btrott Exp $
 
 package XML::Atom::Entry;
 use strict;
 
 use base qw( XML::Atom::Thing );
 use MIME::Base64 qw( encode_base64 decode_base64 );
-use XML::Atom::Author;
+use XML::Atom::Person;
+use XML::Atom::Content;
 
 use constant NS => 'http://purl.org/atom/ns#';
 
 sub element_name { 'entry' }
 
-sub author {
+sub _element {
     my $entry = shift;
+    my($class, $name) = (shift, shift);
+    my $root = $entry->{doc}->getDocumentElement;
     if (@_) {
-        my $author = shift;
-        $entry->{doc}->getDocumentElement->appendChild($author->{doc}->getDocumentElement->cloneNode(1));
-        $entry->{__author} = $author;
+        my $obj = shift;
+        if (my $node = $entry->_first($entry->{doc}, NS, $name)) {
+            $root->removeChild($node);
+        }
+        my $elem = $entry->{doc}->createElementNS(NS, $name);
+        $root->appendChild($elem);
+        for my $child ($obj->elem->childNodes) {
+            $elem->appendChild($child->cloneNode(1));
+        }
+        for my $attr ($obj->elem->attributes) {
+            next unless ref($attr) eq 'XML::LibXML::Attr';
+            $elem->setAttribute($attr->getName, $attr->getValue);
+        }
+        $obj->{elem} = $elem;
+        $entry->{'__' . $name} = $obj;
     } else {
-        unless (exists $entry->{__author}) {
-            my $author = $entry->_first($entry->{doc}, NS, 'author') or return;
-            $entry->{__author} = XML::Atom::Author->new(Doc => $author);
+        unless (exists $entry->{'__' . $name}) {
+            my $elem = $entry->_first($entry->{doc}, NS, $name) or return;
+            $entry->{'__' . $name} = $class->new(Elem => $elem);
         }
     }
-    $entry->{__author};
+    $entry->{'__' . $name};
+}
+
+sub author {
+    my $entry = shift;
+    $entry->_element('XML::Atom::Person', 'author', @_);
 }
 
 sub content {
-    my $atom = shift;
-    if (@_) {
-        my $content = shift;
-        if ($content =~ /[^\x09\x0a\x0d\x20-\x7f]/) {
-            $atom->set(NS, 'content', encode_base64($content), { mode => 'base64' });
-        } else {
-            $content = '<div xmlns="http://www.w3.org/1999/xhtml">' .
-                       $content .
-                       '</div>';
-            my $node;
-            eval {
-                my $parser = XML::LibXML->new;
-                my $tree = $parser->parse_string($content);
-                $node = $tree->getDocumentElement;
-            };
-            if (!$@ && $node) {
-                $atom->set(NS, 'content', $node, { mode => 'xml' });
-            } else {
-                $atom->set(NS, 'content', $content, { mode => 'escaped' });
-            }
-        }
-    } else {
-        unless (exists $atom->{__content}) {
-            my $content = $atom->_first($atom->{doc}, NS, 'content') or return;
-            my $mode = $content->getAttribute('mode') || 'xml';
-            if ($mode eq 'xml') {
-                my @children = grep ref($_) =~ /Element$/, $content->childNodes;
-                $atom->{__content} = @children ? $children[0]->toString :
-                    $content->textContent;
-            } elsif ($mode eq 'base64') {
-                $atom->{__content} = decode_base64($content->textContent);
-            } elsif ($mode eq 'escaped') {
-                $atom->{__content} = $content->textContent;
-            } else {
-                $atom->{__content} = undef;
-            }
-            if ($] >= 5.008) {
-                require Encode;
-                Encode::_utf8_off($atom->{__content});
-            }
-        }
+    my $entry = shift;
+    my @arg = @_;
+    if (@arg && ref($arg[0]) ne 'XML::Atom::Content') {
+        $arg[0] = XML::Atom::Content->new($arg[0]);
     }
-    $atom->{__content};
+    $entry->_element('XML::Atom::Content', 'content', @arg);
 }
 
 1;
@@ -99,6 +82,13 @@ Creates and returns a new entry object.
 
 Returns the content of the entry. If I<$content> is given, sets the content
 of the entry. Automatically handles all necessary escaping.
+
+=head2 $entry->content_type([ $type ])
+
+Returns the content type of the content in I<content>. If I<$type> is given,
+sets the content type of the entry.
+
+NOTE: this interface is almost certain to change.
 
 =head2 $entry->author([ $author ])
 
