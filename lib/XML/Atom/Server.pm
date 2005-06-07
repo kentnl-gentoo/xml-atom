@@ -1,4 +1,4 @@
-# $Id: Server.pm 1805 2005-02-09 06:46:06Z btrott $
+# $Id$
 
 package XML::Atom::Server;
 use strict;
@@ -323,7 +323,7 @@ XML::Atom::Server - A server for the Atom API
     sub handle_request {
         my $server = shift;
         $server->authenticate or return;
-        my $method = $app->request_method;
+        my $method = $server->request_method;
         if ($method eq 'POST') {
             return $server->new_post;
         }
@@ -385,7 +385,7 @@ For example:
         my $server = shift;
         my $entry = $server->atom_body or return;
         my $id = save_this_entry($entry);  ## Implementation-specific
-        $server->response_header(Location => $app->uri . '/entry_id=' . $id);
+        $server->response_header(Location => $server->uri . '/entry_id=' . $id);
         $server->response_code(201);
         $server->response_content_type('application/x.atom+xml');
         return serialize_entry($entry);    ## Implementation-specific

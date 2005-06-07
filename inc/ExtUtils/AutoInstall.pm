@@ -1,15 +1,15 @@
-#line 1 "inc/ExtUtils/AutoInstall.pm - /Library/Perl/5.8.1/ExtUtils/AutoInstall.pm"
+#line 1 "inc/ExtUtils/AutoInstall.pm - /usr/local/lib/perl5/site_perl/5.8.6/ExtUtils/AutoInstall.pm"
 # $File: //member/autrijus/ExtUtils-AutoInstall/lib/ExtUtils/AutoInstall.pm $ 
-# $Revision: #9 $ $Change: 9532 $ $DateTime: 2004/01/01 06:47:30 $ vim: expandtab shiftwidth=4
+# $Revision: #14 $ $Change: 10538 $ $DateTime: 2004/04/29 17:55:36 $ vim: expandtab shiftwidth=4
 
 package ExtUtils::AutoInstall;
-$ExtUtils::AutoInstall::VERSION = '0.56';
+$ExtUtils::AutoInstall::VERSION = '0.61';
 
 use strict;
 use Cwd ();
 use ExtUtils::MakeMaker ();
 
-#line 282
+#line 308
 
 # special map on pre-defined feature sets
 my %FeatureMap = (
@@ -22,8 +22,12 @@ my (@Missing, @Existing, %DisabledTests, $UnderCPAN, $HasCPANPLUS);
 my ($Config, $CheckOnly, $SkipInstall, $AcceptDefault, $TestOnly);
 my ($PostambleActions, $PostambleUsed);
 
-$AcceptDefault = 1 unless -t STDIN; # non-interactive session
+_accept_default(!-t STDIN); # see if it's a non-interactive session
 _init();
+
+sub _accept_default {
+    $AcceptDefault = shift;
+}
 
 sub missing_modules {
     return @Missing;
@@ -281,7 +285,11 @@ sub _install_cpanplus {
     my $cp   = CPANPLUS::Backend->new;
     my $conf = $cp->configure_object;
 
-    return unless _can_write($conf->_get_build('base'));
+    return unless _can_write(
+        $conf->can('conf')
+            ? $conf->get_conf('base')       # 0.05x+
+            : $conf->_get_build('base')     # 0.04x
+    );
 
     # if we're root, set UNINST=1 to avoid trouble unless user asked for it.
     my $makeflags = $conf->get_conf('makeflags') || '';
@@ -295,6 +303,7 @@ sub _install_cpanplus {
             if ($makeflags !~ /\bUNINST\b/ and eval qq{ $> eq '0' });
     }
     $conf->set_conf(makeflags => $makeflags);
+    $conf->set_conf(prereqs => 1);
 
     while (my ($key, $val) = splice(@config, 0, 2)) {
         eval { $conf->set_conf($key, $val) };
@@ -366,6 +375,8 @@ sub _install_cpan {
         $CPAN::Config->{$opt} = $arg;
     }
 
+    local $CPAN::Config->{prerequisites_policy} = 'follow';
+
     while (my ($pkg, $ver) = splice(@modules, 0, 2)) {
         MY::preinstall($pkg, $ver) or next if defined &MY::preinstall;
 
@@ -383,7 +394,14 @@ sub _install_cpan {
 
             $obj->force('install') if $args{force};
 
-            if ($obj->install eq 'YES') {
+            my $rv = $obj->install || eval { 
+                $CPAN::META->instance(
+                    'CPAN::Distribution',
+                    $obj->cpan_file,
+                )->{install} if $CPAN::META
+            };
+
+            if ($rv eq 'YES') {
                 print "*** $pkg successfully installed.\n";
                 $success = 1;
             }
@@ -628,4 +646,4 @@ installdeps ::
 
 __END__
 
-#line 929
+#line 973

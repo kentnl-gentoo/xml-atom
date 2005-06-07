@@ -1,4 +1,4 @@
-# $Id: Makefile.PL 904 2004-06-01 16:56:28Z btrott $
+# $Id$
 
 use inc::Module::Install;
 
@@ -28,11 +28,6 @@ features(
     'Feed and API Auto-discovery' => [
         -default => 1,
         recommends('HTML::Parser'),
-    ],
-
-    'Namespace Normalization' => [
-        -default => 0,
-        recommends('XML::LibXSLT'),
     ],
 );
 

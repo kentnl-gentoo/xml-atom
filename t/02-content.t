@@ -1,4 +1,4 @@
-# $Id: 02-content.t 1805 2005-02-09 06:46:06Z btrott $
+# $Id$
 
 use strict;
 

@@ -1,4 +1,4 @@
-# $Id: Person.pm 893 2004-05-08 13:20:58Z btrott $
+# $Id: Person.pm,v 1.3 2004/05/08 13:20:58 btrott Exp $
 
 package XML::Atom::Person;
 use strict;

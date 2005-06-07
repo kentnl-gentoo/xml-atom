@@ -1,4 +1,4 @@
-# $Id: 03-link.t 1806 2005-02-23 23:13:21Z btrott $
+# $Id$
 
 use strict;
 

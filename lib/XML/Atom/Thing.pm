@@ -1,4 +1,4 @@
-# $Id: Thing.pm 1806 2005-02-23 23:13:21Z btrott $
+# $Id$
 
 package XML::Atom::Thing;
 use strict;
@@ -124,15 +124,23 @@ sub getlist {
      } @node;
 }
 
-sub set_libxml {
+sub add {
     my $atom = shift;
     my($ns, $name, $val, $attr) = @_;
-    my $elem;
+    $atom->set($ns, $name, $val, $attr, 1);
+}
+
+sub set_libxml {
+    my $atom = shift;
+    my($ns, $name, $val, $attr, $add) = @_;
     my $ns_uri = ref($ns) eq 'XML::Atom::Namespace' ? $ns->{uri} : $ns;
-    unless ($elem = first($atom->{doc}, $ns_uri, $name)) {
-        $elem = $atom->{doc}->createElementNS($ns_uri, $name);
-        $atom->{doc}->getDocumentElement->appendChild($elem);
+    my @elem = nodelist($atom->{doc}, $ns_uri, $name);
+    if (!$add && @elem) {
+        my $doc = $atom->{doc}->getDocumentElement;
+        $doc->removeChild($_) for @elem;
     }
+    my $elem = $atom->{doc}->createElementNS($ns_uri, $name);
+    $atom->{doc}->getDocumentElement->appendChild($elem);
     if ($ns ne NS) {
         $atom->{doc}->getDocumentElement->setNamespace($ns->{uri}, $ns->{prefix}, 0);
     }
@@ -153,17 +161,18 @@ sub set_libxml {
 
 sub set_xpath {
     my $atom = shift;
-    my($ns, $name, $val, $attr) = @_;
-    my $elem;
+    my($ns, $name, $val, $attr, $add) = @_;
     my $ns_uri = ref($ns) eq 'XML::Atom::Namespace' ? $ns->{uri} : $ns;
-    unless ($elem = first($atom->{doc}, $ns_uri, $name)) {
-        $elem = XML::XPath::Node::Element->new($name);
-        if ($ns ne NS) {
-            my $ns = XML::XPath::Node::Namespace->new($ns->{prefix} => $ns->{uri});
-            $elem->appendNamespace($ns);
-        }
-        $atom->{doc}->appendChild($elem);
+    my @elem = nodelist($atom->{doc}, $ns_uri, $name);
+    if (!$add && @elem) {
+        $atom->{doc}->removeChild($_) for @elem;
     }
+    my $elem = XML::XPath::Node::Element->new($name);
+    if ($ns ne NS) {
+        my $ns = XML::XPath::Node::Namespace->new($ns->{prefix} => $ns->{uri});
+        $elem->appendNamespace($ns);
+    }
+    $atom->{doc}->appendChild($elem);
     if (ref($val) =~ /Element$/) {
         $elem->appendChild($val);
     } elsif (defined $val) {
@@ -245,26 +254,8 @@ sub author {
 
 sub as_xml {
     my $doc = $_[0]->{doc};
-    if (eval { require XML::LibXSLT }) {
-        my $parser = XML::LibXML->new;
-        my $xslt = XML::LibXSLT->new;
-        my $style_doc = $parser->parse_string(<<'EOX');
-<?xml version="1.0"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:template match="@*|node()">
-    <xsl:copy>
-      <xsl:apply-templates select="@*|node()"/>
-    </xsl:copy>
-  </xsl:template>
-</xsl:stylesheet> 
-EOX
-        my $sheet = $xslt->parse_stylesheet($style_doc);
-        my $results = $sheet->transform($doc);
-        return $sheet->output_string($results);
-    } else {
-        remove_default_ns($doc->getDocumentElement);
-        return $doc->toString(LIBXML ? 1 : 0);
-    }
+    remove_default_ns($doc->getDocumentElement);
+    $doc->toString(LIBXML ? 1 : 0);
 }
 
 sub _element {

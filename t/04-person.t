@@ -1,4 +1,4 @@
-# $Id: 04-person.t 893 2004-05-08 13:20:58Z btrott $
+# $Id: 04-person.t,v 1.1 2004/05/08 13:20:58 btrott Exp $
 
 use strict;
 
