@@ -13,7 +13,6 @@ use Digest::SHA1 qw( sha1 );
 use MIME::Base64 qw( encode_base64 );
 use DateTime;
 
-use constant NS_ATOM => 'http://purl.org/atom/ns#';
 use constant NS_SOAP => 'http://schemas.xmlsoap.org/soap/envelope/';
 
 sub new {
@@ -28,6 +27,7 @@ sub init {
     my %param = @_;
     $client->{ua} = LWP::UserAgent::AtomClient->new($client);
     $client->{ua}->agent('XML::Atom/' . XML::Atom->VERSION);
+    $client->{ua}->parse_head(0);
     $client;
 }
 
