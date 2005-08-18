@@ -2,7 +2,10 @@ $Id$
 
 Revision history for XML::Atom
 
-0.12_02
+0.13  2005.08.18
+    - Bumped up the version
+
+0.12_02  2005.08.16
     - $feed->version now returns 1.0 when xmlns patches with that for 1.0
     - Fixed segmentation fault problem with <atom:content> longer than 2.5k
       (Thanks to Chris Dent and Ryan King)
