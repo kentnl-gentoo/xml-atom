@@ -1,9 +1,8 @@
-#line 1 "inc/Module/Install/Makefile.pm - /usr/share/perl5/Module/Install/Makefile.pm"
-# $File: //depot/cpan/Module-Install/lib/Module/Install/Makefile.pm $ $Author: autrijus $
-# $Revision: #53 $ $Change: 1847 $ $DateTime: 2003/12/31 23:14:54 $ vim: expandtab shiftwidth=4
-
+#line 1 "inc/Module/Install/Makefile.pm - /usr/local/lib/perl5/site_perl/5.8.7/Module/Install/Makefile.pm"
 package Module::Install::Makefile;
-use Module::Install::Base; @ISA = qw(Module::Install::Base);
+
+use Module::Install::Base;
+@ISA = qw(Module::Install::Base);
 
 $VERSION = '0.01';
 
@@ -24,6 +23,14 @@ sub makemaker_args {
     my $args = ($self->{makemaker_args} ||= {});
     %$args = ( %$args, @_ ) if @_;
     $args;
+}
+
+sub build_subdirs {
+    my $self = shift;
+    my $subdirs = $self->makemaker_args->{DIR} ||= [];
+    for my $subdir (@_) {
+        push @$subdirs, $subdir;
+    }
 }
 
 sub clean_files {
@@ -57,15 +64,17 @@ sub write {
     $args->{VERSION} = $self->version || $self->determine_VERSION($args);
     $args->{NAME} =~ s/-/::/g;
 
+    $args->{test} = {TESTS => $self->tests} if $self->tests;
+
     if ($] >= 5.005) {
-	$args->{ABSTRACT} = $self->abstract;
-	$args->{AUTHOR} = $self->author;
+        $args->{ABSTRACT} = $self->abstract;
+        $args->{AUTHOR} = $self->author;
     }
     if ( eval($ExtUtils::MakeMaker::VERSION) >= 6.10 ) {
         $args->{NO_META} = 1;
     }
     if ( eval($ExtUtils::MakeMaker::VERSION) > 6.17 ) {
-	$args->{SIGN} = 1 if $self->sign;
+        $args->{SIGN} = 1 if $self->sign;
     }
     delete $args->{SIGN} unless $self->is_admin;
 
@@ -75,10 +84,13 @@ sub write {
                  ($self->build_requires, $self->requires) );
 
     # merge both kinds of requires into prereq_pm
-    my $dir = ($args->{DIR} ||= []);
+    my $subdirs = ($args->{DIR} ||= []);
     if ($self->bundles) {
-        push @$dir, map "$_->[1]", @{$self->bundles};
-        delete $prereq->{$_->[0]} for @{$self->bundles};
+        foreach my $bundle (@{ $self->bundles }) {
+            my ($file, $dir) = @$bundle;
+            push @$subdirs, $dir if -d $dir;
+            delete $prereq->{$file};
+        }
     }
 
     if (my $perl_version = $self->perl_version) {
@@ -109,6 +121,7 @@ sub fix_up_makefile {
     my $postamble = "# Postamble by $top_class $top_version\n" . 
                     ($self->postamble || '');
 
+    local *MAKEFILE;
     open MAKEFILE, '< Makefile' or die $!;
     my $makefile = do { local $/; <MAKEFILE> };
     close MAKEFILE;
@@ -143,4 +156,4 @@ sub postamble {
 
 __END__
 
-#line 276
+#line 288

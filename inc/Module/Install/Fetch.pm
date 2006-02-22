@@ -1,9 +1,8 @@
-#line 1 "inc/Module/Install/Fetch.pm - /usr/share/perl5/Module/Install/Fetch.pm"
-# $File: //depot/cpan/Module-Install/lib/Module/Install/Fetch.pm $ $Author: autrijus $
-# $Revision: #8 $ $Change: 1374 $ $DateTime: 2003/03/18 11:50:15 $ vim: expandtab shiftwidth=4
-
+#line 1 "inc/Module/Install/Fetch.pm - /usr/local/lib/perl5/site_perl/5.8.7/Module/Install/Fetch.pm"
 package Module::Install::Fetch;
-use Module::Install::Base; @ISA = qw(Module::Install::Base);
+
+use Module::Install::Base;
+@ISA = qw(Module::Install::Base);
 
 $VERSION = '0.01';
 
@@ -12,7 +11,7 @@ sub get_file {
     my ($scheme, $host, $path, $file) = 
         $args{url} =~ m|^(\w+)://([^/]+)(.+)/(.+)| or return;
 
-    if ($scheme eq 'http' and !eval { require LWP::Simple; 1 }) {
+    if ( $scheme eq 'http' and ! eval { require LWP::Simple; 1 } ) {
         $args{url} = $args{ftp_url}
             or (warn("LWP support unavailable!\n"), return);
         ($scheme, $host, $path, $file) = 
