@@ -21,4 +21,4 @@ recommends:
 requires: 
   MIME::Base64: 0
   URI: 0
-version: 0.17
+version: 0.18

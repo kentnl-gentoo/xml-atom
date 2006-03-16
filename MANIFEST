@@ -39,6 +39,7 @@ t/13-atom1.t
 t/14-atom1-create.t
 t/15-content-image.t
 t/16-content-binary.t
+t/17-renames.t
 t/samples/atom-1.0.xml
 t/samples/entry-euc.xml
 t/samples/entry-full.xml
