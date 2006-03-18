@@ -1,12 +1,15 @@
-#line 1 "inc/ExtUtils/AutoInstall.pm - /usr/local/lib/perl5/site_perl/5.8.7/ExtUtils/AutoInstall.pm"
+#line 1
+# $File: //member/autrijus/ExtUtils-AutoInstall/lib/ExtUtils/AutoInstall.pm $ 
+# $Revision: #14 $ $Change: 10538 $ $DateTime: 2004/04/29 17:55:36 $ vim: expandtab shiftwidth=4
+
 package ExtUtils::AutoInstall;
-$ExtUtils::AutoInstall::VERSION = '0.63';
+$ExtUtils::AutoInstall::VERSION = '0.59';
 
 use strict;
 use Cwd ();
 use ExtUtils::MakeMaker ();
 
-#line 311
+#line 307
 
 # special map on pre-defined feature sets
 my %FeatureMap = (
@@ -282,11 +285,7 @@ sub _install_cpanplus {
     my $cp   = CPANPLUS::Backend->new;
     my $conf = $cp->configure_object;
 
-    return unless _can_write(
-        $conf->can('conf')
-            ? $conf->get_conf('base')       # 0.05x+
-            : $conf->_get_build('base')     # 0.04x
-    );
+    return unless _can_write($conf->_get_build('base'));
 
     # if we're root, set UNINST=1 to avoid trouble unless user asked for it.
     my $makeflags = $conf->get_conf('makeflags') || '';
@@ -354,10 +353,8 @@ sub _install_cpan {
     my %args;
 
     require CPAN; CPAN::Config->load;
-    require Config;
 
-    return unless _can_write(MM->catfile($CPAN::Config->{cpan_home}, 'sources'))
-              and _can_write($Config::Config{sitelib});
+    return unless _can_write(MM->catfile($CPAN::Config->{cpan_home}, 'sources'));
 
     # if we're root, set UNINST=1 to avoid trouble unless user asked for it.
     my $makeflags = $CPAN::Config->{make_install_arg} || '';
@@ -397,7 +394,7 @@ sub _install_cpan {
                 $CPAN::META->instance(
                     'CPAN::Distribution',
                     $obj->cpan_file,
-                )->{install} if $CPAN::META
+                )->{install}
             };
 
             if ($rv eq 'YES') {
@@ -487,7 +484,8 @@ sub _can_write {
     my $path = shift;
     mkdir ($path, 0755) unless -e $path;
 
-    return 1 if -w $path;
+    require Config;
+    return 1 if -w $path and -w $Config::Config{sitelib};
 
     print << ".";
 *** You are not allowed to write to the directory '$path';
@@ -644,4 +642,4 @@ installdeps ::
 
 __END__
 
-#line 977
+#line 968
