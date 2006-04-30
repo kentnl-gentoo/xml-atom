@@ -40,10 +40,12 @@ t/14-atom1-create.t
 t/15-content-image.t
 t/16-content-binary.t
 t/17-renames.t
+t/18-unicode.t
 t/samples/atom-1.0.xml
 t/samples/entry-euc.xml
 t/samples/entry-full.xml
 t/samples/entry-ns.xml
+t/samples/entry-utf8.xml
 t/samples/feed.xml
 t/samples/lifeblog-atom.xml
 t/samples/me.jpg
