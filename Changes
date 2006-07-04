@@ -3,8 +3,15 @@ $Id$
 Revision history for XML::Atom
 
 0.20
+    * Lots of refactoring, which simplifies much of the code in the various
+      construct modules (Person, Link, etc), and which should also make it
+      much more straightforward to add extension classes in the future.
     * Added global $XML::Atom::ForceUnicode flag to return everything as Unicode flagged
       (Suggested by many people)
+    * Added global $XML::Atom::DefaultVersion flag to set default
+      version number for generated Atom feed. Defaults to 0.3 (for backward compatibility)
+    * Added support for atom:content @type in Atom 1.0 feeds
+      (Suggested by many people, especially Chris Dent and Andy Lester from Socialtext)
 
 0.19  2006.03.19
     * Fix 0.18 bug where renaming stuff was totally broken.
