@@ -18,6 +18,7 @@ recommends:
   XML::LibXML: 1.54
   XML::XPath: 0
 requires: 
+  Class::Data::Inheritable: 0
   MIME::Base64: 0
   URI: 0
-version: 0.21
+version: 0.21_01
