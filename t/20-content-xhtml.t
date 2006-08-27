@@ -1,4 +1,4 @@
-# $Id: /mirror/cpan/xml-atom/trunk/t/20-content-xhtml.t 2903 2006-07-06T01:15:36.512143Z btrott  $
+# $Id: /mirror/code/XML-Atom/trunk/t/20-content-xhtml.t 3518 2006-08-16T05:34:58.799705Z miyagawa  $
 
 use strict;
 use XML::Atom;

@@ -1,4 +1,4 @@
-# $Id: /mirror/cpan/xml-atom/trunk/t/19-ext.t 2891 2006-06-29T04:18:47.205655Z btrott  $
+# $Id: /mirror/code/XML-Atom/trunk/t/19-ext.t 3517 2006-08-16T05:34:19.378835Z miyagawa  $
 
 use strict;
 use FindBin;

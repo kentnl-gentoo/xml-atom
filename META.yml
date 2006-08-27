@@ -1,7 +1,7 @@
 abstract: Atom API and Feed Support
 author: Benjamin Trott <cpan@stupidfool.org>
 distribution_type: module
-generated_by: Module::Install version 0.61
+generated_by: Module::Install version 0.64
 license: perl
 name: XML-Atom
 no_index: 
@@ -21,4 +21,4 @@ requires:
   Class::Data::Inheritable: 0
   MIME::Base64: 0
   URI: 0
-version: 0.22
+version: 0.22_01

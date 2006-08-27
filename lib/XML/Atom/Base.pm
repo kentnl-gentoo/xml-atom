@@ -1,4 +1,4 @@
-# $Id: /mirror/cpan/xml-atom/trunk/lib/XML/Atom/Base.pm 3115 2006-07-19T09:44:39.775294Z miyagawa  $
+# $Id: /mirror/code/XML-Atom/trunk/lib/XML/Atom/Base.pm 4088 2006-08-27T05:50:44.603134Z miyagawa  $
 
 package XML::Atom::Base;
 use strict;
@@ -202,6 +202,30 @@ sub _add_attribute {
 sub attributes {
     my $class = shift;
     @{ $class->__attributes };
+}
+
+sub mk_xml_attr_accessors {
+    my($class, @list) = @_;
+    no strict 'refs';
+    for my $attr (@list) {
+        (my $meth = $attr) =~ tr/\-/_/;
+        *{"${class}::$meth"} = sub {
+            my $obj = shift;
+            if (LIBXML) {
+                my $elem = $obj->elem;
+                if (@_) {
+                    $elem->setAttributeNS('http://www.w3.org/XML/1998/namespace',
+                                          $attr, $_[0]);
+                }
+                return $elem->getAttributeNS('http://www.w3.org/XML/1998/namespace', $attr);
+            } else {
+                if (@_) {
+                    $obj->elem->setAttribute("xml:$attr", $_[0]);
+                }
+                return $obj->elem->getAttribute("xml:$attr");
+            }
+        };
+    }
 }
 
 sub mk_object_accessor {
