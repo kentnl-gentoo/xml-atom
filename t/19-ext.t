@@ -1,4 +1,4 @@
-# $Id: /mirror/code/XML-Atom/trunk/t/19-ext.t 3517 2006-08-16T05:34:19.378835Z miyagawa  $
+# $Id: /mirror/code/XML-Atom/trunk/t/19-ext.t 5803 2006-09-19T22:35:49.408282Z btrott  $
 
 use strict;
 use FindBin;
@@ -25,7 +25,7 @@ $foo2 = $feed->foo2;
 isa_ok $foo2, 'XML::Atom::Ext::Foo';
 is $foo2->bar, 1;
 
-like $feed->as_xml, qr/<(?:\w+:)foo xmlns="http:\/\/www.example.com\/ns\/">/;
+like $feed->as_xml, qr/<foo xmlns="http:\/\/www.example.com\/ns\/">/;
 
 package XML::Atom::Ext::Foo;
 use strict;
