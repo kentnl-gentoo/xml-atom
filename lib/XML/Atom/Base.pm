@@ -1,4 +1,4 @@
-# $Id: /mirror/code/XML-Atom/trunk/lib/XML/Atom/Base.pm 6521 2007-04-27T20:45:37.202224Z miyagawa  $
+# $Id: /mirror/code/XML-Atom/trunk/lib/XML/Atom/Base.pm 6911 2007-09-16T04:41:21.502409Z miyagawa  $
 
 package XML::Atom::Base;
 use strict;
@@ -353,7 +353,11 @@ sub as_xml {
 
 sub as_xml_utf8 {
     my $obj = shift;
-    Encode::encode_utf8($obj->as_xml);
+    my $xml = $obj->as_xml;
+    if (utf8::is_utf8($xml)) {
+        return Encode::encode_utf8($xml);
+    }
+    return $xml;
 }
 
 1;
