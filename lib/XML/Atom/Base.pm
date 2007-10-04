@@ -1,4 +1,4 @@
-# $Id: /mirror/code/XML-Atom/trunk/lib/XML/Atom/Base.pm 6911 2007-09-16T04:41:21.502409Z miyagawa  $
+# $Id: /mirror/code/XML-Atom/trunk/lib/XML/Atom/Base.pm 6955 2007-10-04T20:28:06.441127Z miyagawa  $
 
 package XML::Atom::Base;
 use strict;
@@ -6,7 +6,7 @@ use base qw( XML::Atom::ErrorHandler Class::Data::Inheritable );
 
 use Encode;
 use XML::Atom;
-use XML::Atom::Util qw( set_ns first nodelist childlist create_element remove_default_ns );
+use XML::Atom::Util qw( set_ns first nodelist childlist create_element );
 
 __PACKAGE__->mk_classdata('__attributes', []);
 
@@ -343,7 +343,6 @@ sub as_xml {
     if (LIBXML) {
         my $doc = XML::LibXML::Document->new('1.0', 'utf-8');
         $doc->setDocumentElement($obj->elem);
-        remove_default_ns($obj->elem);
         return $doc->toString(1);
     } else {
         return '<?xml version="1.0" encoding="utf-8"?>' . "\n" .
