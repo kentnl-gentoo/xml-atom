@@ -1,4 +1,4 @@
-# $Id: /mirror/code/XML-Atom/trunk/lib/XML/Atom/Base.pm 6955 2007-10-04T20:28:06.441127Z miyagawa  $
+# $Id: /mirror/code/XML-Atom/trunk/lib/XML/Atom/Base.pm 8248 2007-11-06T21:05:44.685649Z miyagawa  $
 
 package XML::Atom::Base;
 use strict;
@@ -168,7 +168,8 @@ sub set_attr {
 sub get_object {
     my $obj = shift;
     my($ns, $name, $class) = @_;
-    my @elem = childlist($obj->elem, $ns, $name) or return;
+    my $ns_uri = ref($ns) eq 'XML::Atom::Namespace' ? $ns->{uri} : $ns;
+    my @elem = childlist($obj->elem, $ns_uri, $name) or return;
     my @obj = map { $class->new( Elem => $_, Namespace => $ns ) } @elem;
     return wantarray ? @obj : $obj[0];
 }

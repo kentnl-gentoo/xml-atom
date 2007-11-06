@@ -21,4 +21,4 @@ requires:
   MIME::Base64: 0
   URI: 0
   XML::LibXML: 1.64
-version: 0.27_01
+version: 0.28
