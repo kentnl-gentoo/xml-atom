@@ -1,4 +1,4 @@
-$Id: README,v 1.2 2003/09/08 03:48:07 btrott Exp $
+$Id: README 1 2006-08-16 05:19:58Z miyagawa $
 
 This is XML::Atom, an implementation of the API and feed format.
 

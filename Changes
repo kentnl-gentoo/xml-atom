@@ -1,6 +1,9 @@
-$Id$
+$Id: Changes 98 2008-10-26 00:26:40Z miyagawa $
 
 Revision history for XML::Atom
+
+0.29  2008.10.25
+    * Skips Unicode tests since it doesn't pass with some libxml versions (and it's not actually a bug)
 
 0.28  2007.11.06
     * Fixed Namespace handling in extensions so that both URL and NS object work

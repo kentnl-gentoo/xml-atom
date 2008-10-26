@@ -1,4 +1,4 @@
-# $Id$
+# $Id: 01-util.t 39 2006-08-16 05:34:19Z miyagawa $
 
 use strict;
 

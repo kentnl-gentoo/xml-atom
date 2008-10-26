@@ -1,4 +1,4 @@
-# $Id$
+# $Id: 00-compile.t 76 2006-11-29 09:36:01Z miyagawa $
 
 use Test::More tests => 6;
 

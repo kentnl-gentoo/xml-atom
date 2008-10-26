@@ -1,4 +1,4 @@
-# $Id$
+# $Id: Client.pm 77 2006-11-30 23:10:18Z miyagawa $
 
 package XML::Atom::Client;
 use strict;

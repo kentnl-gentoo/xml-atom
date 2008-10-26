@@ -1,4 +1,4 @@
-# $Id$
+# $Id: Entry.pm 52 2006-08-16 05:38:26Z miyagawa $
 
 package XML::Atom::Entry;
 use strict;

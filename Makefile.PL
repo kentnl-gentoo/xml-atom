@@ -1,4 +1,4 @@
-# $Id$
+# $Id: Makefile.PL 97 2008-10-26 00:23:27Z miyagawa $
 
 use inc::Module::Install;
 
@@ -20,19 +20,18 @@ requires('XML::LibXML', 1.64);
 features(
     'Pure perl XML parsing with XML::XPath' => [
         -default => 0,
-        recommends('XML::XPath'),
+       'XML::XPath' => 0,
     ],
     'Client/Server for Atom API' => [
         -default => 1,
-        recommends('LWP'),
-        recommends('LWP::Authen::Wsse'),
-        recommends('Digest::SHA1'),
-        recommends('DateTime'),
+        LWP => 0,
+        'LWP::Authen::Wsse' => 0,
+        'Digest::SHA1' => 0,
+        'DateTime' => 0,
     ],
-
     'Feed and API Auto-discovery' => [
         -default => 1,
-        recommends('HTML::Parser'),
+        'HTML::Parser' => 0,
     ],
 );
 

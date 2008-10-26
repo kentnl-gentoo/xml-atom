@@ -1,4 +1,4 @@
-# $Id$
+# $Id: 04-person.t 82 2007-06-20 19:20:38Z miyagawa $
 
 use strict;
 

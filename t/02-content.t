@@ -1,4 +1,4 @@
-# $Id$
+# $Id: 02-content.t 97 2008-10-26 00:23:27Z miyagawa $
 
 use strict;
 
@@ -51,10 +51,13 @@ $content->type('text/plain');
 is $content->mode, 'base64';
 is $content->body, "This is a test that should use base64\x7f.";
 
+SKIP: {
+skip "skip Unicode test since it depends on LibXML", 2;
 $content = XML::Atom::Content->new;
 $content->body("My name is \xe5\xae\xae\xe5\xb7\x9d.");
 is $content->mode, 'xml';
 is $content->body, "My name is \xe5\xae\xae\xe5\xb7\x9d.";
+}
 
 $content = XML::Atom::Content->new;
 $content->type('text/plain');

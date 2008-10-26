@@ -1,4 +1,4 @@
-# $Id: /mirror/code/XML-Atom/trunk/t/19-ext.t 8248 2007-11-06T21:05:44.685649Z miyagawa  $
+# $Id: 19-ext.t 94 2007-11-06 21:05:44Z miyagawa $
 
 use strict;
 use FindBin;

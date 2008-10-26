@@ -1,4 +1,4 @@
-# $Id: /mirror/code/XML-Atom/trunk/lib/XML/Atom/Base.pm 8248 2007-11-06T21:05:44.685649Z miyagawa  $
+# $Id: Base.pm 94 2007-11-06 21:05:44Z miyagawa $
 
 package XML::Atom::Base;
 use strict;

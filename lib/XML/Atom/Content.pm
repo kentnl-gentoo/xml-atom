@@ -1,4 +1,4 @@
-# $Id$
+# $Id: Content.pm 89 2007-10-04 20:28:06Z miyagawa $
 
 package XML::Atom::Content;
 use strict;

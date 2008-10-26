@@ -1,4 +1,4 @@
-# $Id$
+# $Id: Feed.pm 70 2006-09-16 06:39:51Z miyagawa $
 
 package XML::Atom::Feed;
 use strict;
