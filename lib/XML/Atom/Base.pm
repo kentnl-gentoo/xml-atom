@@ -1,4 +1,4 @@
-# $Id: Base.pm 94 2007-11-06 21:05:44Z miyagawa $
+# $Id: Base.pm 100 2008-11-12 22:40:17Z miyagawa $
 
 package XML::Atom::Base;
 use strict;
@@ -343,7 +343,7 @@ sub as_xml {
     my $obj = shift;
     if (LIBXML) {
         my $doc = XML::LibXML::Document->new('1.0', 'utf-8');
-        $doc->setDocumentElement($obj->elem);
+        $doc->setDocumentElement($obj->elem->cloneNode(1));
         return $doc->toString(1);
     } else {
         return '<?xml version="1.0" encoding="utf-8"?>' . "\n" .
