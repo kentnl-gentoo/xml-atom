@@ -1,4 +1,4 @@
-# $Id: Base.pm 100 2008-11-12 22:40:17Z miyagawa $
+# $Id: Base.pm 103 2008-11-13 21:17:30Z miyagawa $
 
 package XML::Atom::Base;
 use strict;
@@ -62,6 +62,15 @@ sub elem { $_[0]->{elem} }
 sub version {
     my $atom = shift;
     XML::Atom::Util::ns_to_version($atom->ns);
+}
+
+sub content_type {
+    my $atom = shift;
+    if ($atom->version >= 1.0) {
+        return "application/atom+xml";
+    } else {
+        return "application/x.atom+xml";
+    }
 }
 
 sub get {

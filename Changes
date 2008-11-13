@@ -1,6 +1,10 @@
-$Id: Changes 101 2008-11-12 22:45:15Z miyagawa $
+$Id: Changes 104 2008-11-13 21:18:54Z miyagawa $
 
 Revision history for XML::Atom
+
+0.31  2008.11.13
+    * Update Content-Type in XML::Atom::Client when the entity's version >= 1.0
+      (Thanks to David Steinbrunner RT 39801)
 
 0.30  2008.11.12
     * hopefully fix a bug where xml:base returns an empty string

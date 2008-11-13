@@ -1,4 +1,4 @@
-# $Id: Client.pm 77 2006-11-30 23:10:18Z miyagawa $
+# $Id: Client.pm 103 2008-11-13 21:17:30Z miyagawa $
 
 package XML::Atom::Client;
 use strict;
@@ -71,7 +71,7 @@ sub createEntry {
     return $client->error("Must pass a PostURI before posting")
         unless $uri;
     my $req = HTTP::Request->new(POST => $uri);
-    $req->content_type('application/x.atom+xml');
+    $req->content_type($entry->content_type);
     my $xml = $entry->as_xml;
     _utf8_off($xml);
     $req->content_length(length $xml);
@@ -86,7 +86,7 @@ sub updateEntry {
     my $client = shift;
     my($url, $entry) = @_;
     my $req = HTTP::Request->new(PUT => $url);
-    $req->content_type('application/x.atom+xml');
+    $req->content_type($entry->content_type);
     my $xml = $entry->as_xml;
     _utf8_off($xml);
     $req->content_length(length $xml);
@@ -135,7 +135,7 @@ sub munge_request {
     my $client = shift;
     my($req) = @_;
     $req->header(
-        Accept => 'application/x.atom+xml, application/xml, text/xml, */*',
+        Accept => 'application/atom+xml, application/x.atom+xml, application/xml, text/xml, */*',
     );
     my $nonce = $client->make_nonce;
     my $nonce_enc = encode_base64($nonce, '');

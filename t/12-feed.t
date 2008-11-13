@@ -1,8 +1,8 @@
-# $Id: 12-feed.t 39 2006-08-16 05:34:19Z miyagawa $
+# $Id: 12-feed.t 103 2008-11-13 21:17:30Z miyagawa $
 
 use strict;
 
-use Test::More tests => 32;
+use Test::More tests => 33;
 use XML::Atom::Feed;
 use URI;
 
@@ -70,3 +70,5 @@ $feed->add_entry($entry, { mode => 'insert' });
 is scalar @entries, 17;
 is $entries[0]->title, 'Bar';
 is $feed->title, 'dive into atom';
+
+is $feed->content_type, "application/x.atom+xml";
