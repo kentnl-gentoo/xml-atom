@@ -1,4 +1,4 @@
-# $Id: Base.pm 103 2008-11-13 21:17:30Z miyagawa $
+# $Id: Base.pm 106 2008-11-14 22:04:41Z swistow $
 
 package XML::Atom::Base;
 use strict;
@@ -260,7 +260,7 @@ sub mk_xml_attr_accessors {
                     $elem->setAttributeNS('http://www.w3.org/XML/1998/namespace',
                                           $attr, $_[0]);
                 }
-                return $elem->getAttributeNS('http://www.w3.org/XML/1998/namespace', $attr);
+                return $elem->getAttribute("xml:$attr");
             } else {
                 if (@_) {
                     $obj->elem->setAttribute("xml:$attr", $_[0]);
