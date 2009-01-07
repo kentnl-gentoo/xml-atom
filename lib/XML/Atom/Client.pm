@@ -1,4 +1,4 @@
-# $Id: Client.pm 103 2008-11-13 21:17:30Z miyagawa $
+# $Id: Client.pm 109 2009-01-07 01:59:33Z miyagawa $
 
 package XML::Atom::Client;
 use strict;
@@ -173,10 +173,12 @@ SOAP
         $req->method('POST');
         $req->content_type('text/xml');
     } else {
-        $req->header('X-WSSE', sprintf
-          qq(UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
-          $client->username || '', $digest, $nonce_enc, $now);
-        $req->header('Authorization', 'WSSE profile="UsernameToken"');
+        if ($client->username) {
+            $req->header('X-WSSE', sprintf
+              qq(UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
+              $client->username || '', $digest, $nonce_enc, $now);
+            $req->header('Authorization', 'WSSE profile="UsernameToken"');
+        }
     }
 }
 
