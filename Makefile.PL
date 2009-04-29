@@ -1,4 +1,4 @@
-# $Id: Makefile.PL 97 2008-10-26 00:23:27Z miyagawa $
+# $Id$
 
 use inc::Module::Install;
 
@@ -8,6 +8,7 @@ author('Benjamin Trott <cpan@stupidfool.org>');
 version_from('lib/XML/Atom.pm');
 license('perl');
 no_index(directory => 't');
+auto_set_repository;
 sign(0);
 
 include('ExtUtils::AutoInstall');

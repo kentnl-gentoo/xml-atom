@@ -1,4 +1,4 @@
-# $Id: 12-feed.t 103 2008-11-13 21:17:30Z miyagawa $
+# $Id$
 
 use strict;
 

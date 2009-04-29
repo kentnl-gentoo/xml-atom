@@ -1,9 +1,9 @@
-# $Id: Atom.pm 110 2009-01-07 02:01:47Z miyagawa $
+# $Id$
 
 package XML::Atom;
 use strict;
 
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 BEGIN {
     @XML::Atom::EXPORT = qw( LIBXML );

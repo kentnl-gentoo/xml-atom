@@ -1,4 +1,4 @@
-# $Id: 19-ext.t 94 2007-11-06 21:05:44Z miyagawa $
+# $Id$
 
 use strict;
 use FindBin;

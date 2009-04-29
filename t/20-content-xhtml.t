@@ -1,4 +1,4 @@
-# $Id: 20-content-xhtml.t 40 2006-08-16 05:34:58Z miyagawa $
+# $Id$
 
 use strict;
 use XML::Atom;
