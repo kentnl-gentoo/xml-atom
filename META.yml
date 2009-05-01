@@ -1,13 +1,13 @@
 ---
-abstract: 'Atom API and Feed Support'
+abstract: 'Atom feed and API implementation'
 author:
-  - 'Benjamin Trott <cpan@stupidfool.org>'
+  - 'Benjamin Trott, Tatsuhiko Miyagawa'
 build_requires:
   ExtUtils::MakeMaker: 6.42
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.85'
+generated_by: 'Module::Install version 0.86'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -22,7 +22,8 @@ requires:
   MIME::Base64: 0
   URI: 0
   XML::LibXML: 1.64
+  perl: 5.8.1
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/miyagawa/xml-atom.git
-version: 0.34
+version: 0.35
