@@ -20,6 +20,7 @@ no_index:
 requires:
   Class::Data::Inheritable: 0
   DateTime: 0
+  DateTime::TimeZone: 0
   Digest::SHA1: 0
   LWP::UserAgent: 0
   MIME::Base64: 0
@@ -30,4 +31,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/miyagawa/xml-atom.git
-version: 0.40
+version: 0.41
