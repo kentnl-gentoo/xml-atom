@@ -1,6 +1,6 @@
 # $Id$
 
-use inc::Module::Install;
+use lib q[.]; use inc::Module::Install;
 use 5.008;
 
 name 'XML-Atom';
