@@ -48,7 +48,6 @@ t/30-datetime-stringification.t
 t/31-external-entities-libxml.t
 t/31-external-entities-xpath.t
 t/TestLib.pm
-t/author-pod-syntax.t
 t/samples/atom-1.0.xml
 t/samples/entry-euc.xml
 t/samples/entry-full.xml
