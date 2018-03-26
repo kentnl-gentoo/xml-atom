@@ -2,7 +2,7 @@
 
 use strict;
 
-use t::TestLib;
+BEGIN { require './t/TestLib.pm'; t::TestLib->import() }
 use Test::More;
 use XML::Atom;
 use XML::Atom::Entry;
