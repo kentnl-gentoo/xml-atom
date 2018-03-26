@@ -51,6 +51,7 @@ EOX
 ## custom parser
 {
     my $libxml = XML::LibXML->new;
+    $libxml->expand_entities(1);
     my $entry = XML::Atom::Entry->new(Stream => \$xml, Parser => $libxml);
     is $entry->title, "Guest Author", "got title";
     my $content = $entry->content->body;
